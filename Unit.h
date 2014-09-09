@@ -7,8 +7,9 @@ class Unit
 {
 private:
 	sf::RenderWindow* window;
-	sf::CircleShape image;
+	Settings* settings;
 	World* world;
+	sf::CircleShape image;
 	bool alive;
 	sf::Color resist;
 	int food;
@@ -25,12 +26,10 @@ private:
 
 
 public:
-	Unit(sf::RenderWindow* window, World* world, int x, int y, sf::Color res);
+	Unit(sf::RenderWindow* window, World* world, Settings* settings, int x, int y, sf::Color res);
 	void draw();
 	direction searchFood(int r);
 	~Unit();
-
 	void live();
-
 	bool isAlive();
 };

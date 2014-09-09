@@ -6,13 +6,8 @@
 
 int main()
 {
-
-
-
-	int sizex = 1920;
-	int sizey = 1017;
-	//int sizex = 300;
-	//int sizey = 300;
+	int sizex = 1904;
+	int sizey = 1000;
 	float x = 100.0;
 	float y = 100.0;
 	float d = 5.0;
@@ -31,16 +26,14 @@ int main()
 	
 	window.setFramerateLimit(0);
 	window.setVerticalSyncEnabled(false);
-	//window.setFramerateLimit(40);
+	window.setFramerateLimit(40);
 	srand(time(NULL));
 
 	bool candraw = true;
 
 	
-
-	World world(&window, sizex, sizey);
-	//sf::Thread blurthread(&blur, &world);
-	
+	Settings settings("settings.ini");
+	World world(&window, &settings, sizex, sizey);
 	
 	for (int i = 0; i < (rand() % 200 + 40); i++)
 	{
@@ -52,7 +45,7 @@ int main()
 		if (t % 3 == 0) r = f;
 		if (t % 3 == 1) g = f;
 		if (t % 3 == 2) b = f;
-		world.addCircle(rand() % sizex, rand() % sizex, rand() % 160 + 80, r, g, b);
+		world.addCircle(rand() % sizex, rand() % sizex, rand() % 160 + 80, sf::Color(r, g, b));
 	}
 	for (int i = 0; i < (rand() % 300 + 50); i++)
 	{
@@ -64,7 +57,7 @@ int main()
 		if (t % 3 == 0) r = f;
 		if (t % 3 == 1) g = f;
 		if (t % 3 == 2) b = f;
-		world.addCircle(rand() % sizex, rand() % sizex, rand() % 100 + 120, r, g, b);
+		world.addCircle(rand() % sizex, rand() % sizex, rand() % 100 + 120, sf::Color(r, g, b));
 	}
 	for (int i = 0; i < (rand() % 80 + 30); i++)
 	{
@@ -76,7 +69,7 @@ int main()
 		if (t % 3 == 0) r = f;
 		if (t % 3 == 1) g = f;
 		if (t % 3 == 2) b = f;
-		world.addCircle(rand() % sizex, rand() % sizex, rand() % 320 + 220, r, g, b);
+		world.addCircle(rand() % sizex, rand() % sizex, rand() % 320 + 220, sf::Color(r, g, b));
 	}
 	clock.restart();
 	while (window.isOpen())
@@ -95,28 +88,13 @@ int main()
 				}
 			}
 
-			//if (indexj > world.settings->blur_delay)
-			/*{
-				world.BlurBlock(indexi % (sizex / world.settings->block_size_x + 1), indexi / (sizex / world.settings->block_size_y + 1));
-				indexi++;
-				if (indexi > ((sizex / world.settings->block_size_x + 1) * (sizey / world.settings->block_size_y + 1)))
-				{
-					indexi = 0;
-					indexj = 0;
-				}
-			}*/
-			//else
-			//	indexj++;
 
 
 		while (window.pollEvent(event))
 		{
 			if (event.type == sf::Event::Closed || (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
 				window.close();
-			/*if (event.type == sf::Event::MouseButtonPressed)
-			{
-				world.addCircle(sf::, 650, 380, 0, 0, 255);
-			}*/
+
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::V)
 			{
 				if (candraw) 
@@ -133,24 +111,19 @@ int main()
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::R)
 			{
-				world.addCircle(rand() % sizex, rand() % sizex, rand() % 360 + 160, rand() % 120 + 100, 0, 0);
+				world.addCircle(rand() % sizex, rand() % sizex, rand() % 360 + 160, sf::Color(rand() % 120 + 100, 0, 0));
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::G)
 			{
-				world.addCircle(rand() % sizex, rand() % sizex, rand() % 360 + 160, 0, rand() % 120 + 100, 0);
+				world.addCircle(rand() % sizex, rand() % sizex, rand() % 360 + 160, sf::Color(0, rand() % 120 + 100, 0));
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::B)
 			{
-				world.addCircle(rand() % sizex, rand() % sizex, rand() % 360 + 160, 0, 0, rand() % 120 + 100);
+				world.addCircle(rand() % sizex, rand() % sizex, rand() % 360 + 160, sf::Color(0, 0, rand() % 120 + 100));
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::C)
 			{
 				world.Clear();
-			}
-			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::BackSpace)
-			{
-				world.Blur(0);
-				
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::A)
 			{
@@ -179,7 +152,7 @@ int main()
 						resist.g = 20;
 					}
 
-					world.units.push_back(Unit(&window, &world, rand() % (int)(sizex), rand() % (int)(sizey), resist));
+					world.units.push_back(Unit(&window, &world, &settings, rand() % (int)(sizex), rand() % (int)(sizey), resist));
 				}
 			}
 			
@@ -190,24 +163,15 @@ int main()
 		if (!stop) 
 		{ 
 			elapsed1 = timeclock.getElapsedTime(); 
-			//std::cout << "Time: " << elapsed1.asSeconds() << " s." << std::endl;
 		}
 		time_ = elapsed1.asSeconds();
-
-	/*	if (time_ % 1 == 0)
-		{
-			blurthread.launch();
-		}*/
 
 		frames ++;
 		if (time_ != oldtime_)
 		{
 			oldtime_ = time_;
 			fps = frames;
-			frames = 0;/*
-			world.BlurBlock(indexi % (sizex / world.blocksize + 1), indexi / (sizex / world.blocksize + 1));
-			indexi++;
-			if (indexi > ((sizex / world.blocksize + 1) * (sizey / world.blocksize+1 ))) indexi = 0;*/
+			frames = 0;
 		}
 		if (world.getUnitCount() == 0) stop = true;
 
