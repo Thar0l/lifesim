@@ -30,6 +30,7 @@ int main()
 	
 	window.setVerticalSyncEnabled(false);
 	window.setFramerateLimit(0);
+	window.setPosition(sf::Vector2i(0, 0));
 
 	bool candraw = true;
 
