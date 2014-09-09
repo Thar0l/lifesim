@@ -6,8 +6,8 @@
 
 int main()
 {
-	int sizex = 1920;
-	int sizey = 1017;
+	int sizex = 1904;
+	int sizey = 1000;
 	float x = 100.0;
 	float y = 100.0;
 	float d = 5.0;
@@ -163,24 +163,15 @@ int main()
 		if (!stop) 
 		{ 
 			elapsed1 = timeclock.getElapsedTime(); 
-			//std::cout << "Time: " << elapsed1.asSeconds() << " s." << std::endl;
 		}
 		time_ = elapsed1.asSeconds();
-
-	/*	if (time_ % 1 == 0)
-		{
-			blurthread.launch();
-		}*/
 
 		frames ++;
 		if (time_ != oldtime_)
 		{
 			oldtime_ = time_;
 			fps = frames;
-			frames = 0;/*
-			world.BlurBlock(indexi % (sizex / world.blocksize + 1), indexi / (sizex / world.blocksize + 1));
-			indexi++;
-			if (indexi > ((sizex / world.blocksize + 1) * (sizey / world.blocksize+1 ))) indexi = 0;*/
+			frames = 0;
 		}
 		if (world.getUnitCount() == 0) stop = true;
 
