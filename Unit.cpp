@@ -3,17 +3,18 @@
 #include "Unit.h"
 
 
-Unit::Unit(sf::RenderWindow* window, World* world, int x, int y, sf::Color res)
+Unit::Unit(sf::RenderWindow* window, World* world, Settings* settings, int x, int y, sf::Color res)
 {
 	this->world = world; 
 	this->window = window;
-	food = world->settings->start_food;
-	health = world->settings->start_health;
-	energy = world->settings->start_energy;
+	this->settings = settings;
+	food = settings->start_food;
+	health = settings->start_health;
+	energy = settings->start_energy;
 	resist = res;
 	visiblity = 22;
-	speed = world->settings->speed;
-	size = world->settings->start_size;
+	speed = settings->speed;
+	size = settings->start_size;
 	alive = true;
 	image.setPosition(x,y);
 	image.setFillColor(resist);
@@ -121,7 +122,7 @@ void Unit::move(direction dir)
 		if (position.y < 0) position.y = 0;
 		if (position.x >= world->getSize().x) position.x = world->getSize().x - 1;
 		if (position.y >= world->getSize().y) position.y = world->getSize().y - 1;
-		energy -= (world->settings->con_energy_move)*size;
+		energy -= (settings->con_energy_move)*size;
 		image.setPosition(position);
 	}
 }
@@ -139,10 +140,10 @@ bool Unit::eat()
 			if ((i * i + j * j) <= (size) * (size)) 
 			{
 				sf::Color worldpoint = world->getPoint(image.getPosition().x + i, image.getPosition().y + j);
-				if (worldpoint.b >= world->settings->eat_food)
+				if (worldpoint.b >= settings->eat_food)
 				{
-					worldpoint.b -= world->settings->eat_food;
-					food += world->settings->eat_food;
+					worldpoint.b -= settings->eat_food;
+					food += settings->eat_food;
 					world->setPoint(image.getPosition().x + i, image.getPosition().y + j, worldpoint);
 					move(null);
 					eaten = true;
@@ -157,7 +158,7 @@ bool Unit::eat()
 void Unit::split()
 {
 	
-	if ((food > world->settings->con_food_split) && (world->getUnitCount() < world->settings->max_units) && (size > 1))
+	if ((food > settings->con_food_split) && (world->getUnitCount() < settings->max_units) && (size > 1))
 	{
 		sf::Color childsresist[2];
 		for (int i = 0; i < 2; i++)
@@ -175,8 +176,8 @@ void Unit::split()
 			childsresist[i].g = g;
 			childsresist[i].b = b;
 		}
-		world->units.push_back(Unit(window, world, image.getPosition().x + rand() % (2 * size + 1) - size, image.getPosition().y + rand() % (2 * size + 1) - size, childsresist[0]));
-		world->units.push_back(Unit(window, world, image.getPosition().x + rand() % (2 * size + 1) - size, image.getPosition().y + rand() % (2 * size + 1) - size, childsresist[1]));
+		world->units.push_back(Unit(window, world, settings, image.getPosition().x + rand() % (2 * size + 1) - size, image.getPosition().y + rand() % (2 * size + 1) - size, childsresist[0]));
+		world->units.push_back(Unit(window, world, settings, image.getPosition().x + rand() % (2 * size + 1) - size, image.getPosition().y + rand() % (2 * size + 1) - size, childsresist[1]));
 		food = 0;
 		alive = false;
 		size = 0;
@@ -187,9 +188,9 @@ void Unit::split()
 
 void Unit::growth()
 {
-	if ((food > (world->settings->con_food_growth) * size + 60) && (size < 2))
+	if ((food > (settings->con_food_growth) * size + 60) && (size < 2))
 	{
-		food -= (world->settings->con_food_growth) * size;
+		food -= (settings->con_food_growth) * size;
 		size++;
 		image.setRadius(size*2);
 		image.setOrigin(size, size);
@@ -201,7 +202,7 @@ void Unit::live()
 {
 	if (alive)
 	{
-		food -= (world->settings->con_food_spend)*(size*size);
+		food -= (settings->con_food_spend)*(size*size);
 		for (int i = -size; i <= size; i++)
 		{
 			for (int j = -size; j <= size; j++)
@@ -215,11 +216,11 @@ void Unit::live()
 						int r = env.r;
 						int g = env.g;
 						int b = env.b;
-						if (dif >= (world->settings->resist_dif)) health -= (world->settings->resist_damage);
-						if (r > resist.r) r -= (world->settings->env_mod);
-						if (r < resist.r) r += (world->settings->env_mod);
-						if (g > resist.g) g -= (world->settings->env_mod);
-						if (g < resist.g) g += (world->settings->env_mod);
+						if (dif >= (settings->resist_dif)) health -= (settings->resist_damage);
+						if (r > resist.r) r -= (settings->env_mod);
+						if (r < resist.r) r += (settings->env_mod);
+						if (g > resist.g) g -= (settings->env_mod);
+						if (g < resist.g) g += (settings->env_mod);
 						if (r > 255) r = 255;
 						if (g > 255) g = 255;
 						if (b > 255) b = 255;
@@ -234,20 +235,20 @@ void Unit::live()
 				}
 			}
 		}
-		if ((health < (world->settings->health_heal)) && (food > (world->settings->con_food_heal)))
+		if ((health < (settings->health_heal)) && (food > (settings->con_food_heal)))
 		{
-			food -= (world->settings->con_food_heal);
-			health += (world->settings->health_get);
+			food -= (settings->con_food_heal);
+			health += (settings->health_get);
 		}
 		if (health > 100) health = 100;
-		if ((energy < (world->settings->con_energy_move)) && (food >(world->settings->con_food_energy)))
+		if ((energy < (settings->con_energy_move)) && (food >(settings->con_food_energy)))
 		{
-			food -= (world->settings->con_food_energy);
-			energy += (world->settings->energy_get);
+			food -= (settings->con_food_energy);
+			energy += (settings->energy_get);
 		}
 		if (food <= 0)
 		{
-			health -= (world->settings->con_health_hunger);
+			health -= (settings->con_health_hunger);
 		}
 		if (health <= 0)
 		{

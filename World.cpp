@@ -9,10 +9,10 @@ bool World::existPoint(int x, int y)
 }
 
 
-World::World(sf::RenderWindow* window, int width, int height) 
+World::World(sf::RenderWindow* window, Settings* settings, int width, int height)
 {
 	this->window = window;
-	settings = new Settings("settings.ini");
+	this->settings = settings;
 	size.x = width;
 	size.y = height;
 	points.create(size.x, size.y);
@@ -55,7 +55,7 @@ World::World(sf::RenderWindow* window, int width, int height)
 			resist.g = 120;
 		}
 
-		units.push_back(Unit(window, this, rand() % (int)(size.x), rand() % (int)(size.y), resist));
+		units.push_back(Unit(window, this, settings, rand() % (int)(size.x), rand() % (int)(size.y), resist));
 	}
 }
 

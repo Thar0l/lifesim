@@ -32,8 +32,8 @@ int main()
 	bool candraw = true;
 
 	
-
-	World world(&window, sizex, sizey);
+	Settings settings("settings.ini");
+	World world(&window, &settings, sizex, sizey);
 	
 	for (int i = 0; i < (rand() % 200 + 40); i++)
 	{
@@ -152,7 +152,7 @@ int main()
 						resist.g = 20;
 					}
 
-					world.units.push_back(Unit(&window, &world, rand() % (int)(sizex), rand() % (int)(sizey), resist));
+					world.units.push_back(Unit(&window, &world, &settings, rand() % (int)(sizex), rand() % (int)(sizey), resist));
 				}
 			}
 			

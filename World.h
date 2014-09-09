@@ -10,16 +10,16 @@ private:
 	sf::Vector2u size;
 	sf::Image points;
 	sf::RenderWindow* window;
+	Settings* settings;
 	sf::Texture texture;
 	sf::Sprite sprite;
 
 	bool existPoint(int x, int y);
 
 public:
-	Settings* settings;
+	
 	std::list<Unit> units;
-
-	World(sf::RenderWindow* window, int width, int height);
+	World(sf::RenderWindow* window, Settings* settings, int width, int height);
 	void draw();
 	~World();
 	sf::Color getPoint(int x, int y);
