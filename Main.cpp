@@ -29,7 +29,7 @@ int main()
 
 	
 	window.setVerticalSyncEnabled(false);
-	window.setFramerateLimit(40);
+	window.setFramerateLimit(0);
 
 	bool candraw = true;
 
