@@ -4,36 +4,38 @@
 #include "Unit.h"
 #include "Settings.h"
 
+void srand()
+{
+	srand(time(NULL));
+}
+
 int main()
 {
-	int sizex = 1904;
-	int sizey = 1000;
-	float x = 100.0;
-	float y = 100.0;
-	float d = 5.0;
 	bool stop = false;
 	bool pause = false;
-	int time_ = 0;
-	int oldtime_ = 0;
-	int indexi = 0;
-	int indexj = 1000;
+	sf::Time time = sf::Time::Zero;
+	sf::Time oldtime = sf::Time::Zero;
 	int frames = 0;
 	int fps = 0;
-	sf::RenderWindow window(sf::VideoMode(sizex, sizey), "SFML works!");
+
+	Settings settings("settings.ini");
+	sf::RenderWindow window(sf::VideoMode(settings.size_x, settings.size_y), "SFML works!");
+	World world(&window, &settings, settings.size_x, settings.size_y);
+
 	sf::Clock clock;
-	sf::Clock timeclock;
+
+	srand();
+	
 
 	
-	window.setFramerateLimit(0);
 	window.setVerticalSyncEnabled(false);
-	window.setFramerateLimit(40);
-	srand(time(NULL));
+	window.setFramerateLimit(0);
 
 	bool candraw = true;
 
 	
-	Settings settings("settings.ini");
-	World world(&window, &settings, sizex, sizey);
+	
+	
 	
 	for (int i = 0; i < (rand() % 200 + 40); i++)
 	{
@@ -45,7 +47,7 @@ int main()
 		if (t % 3 == 0) r = f;
 		if (t % 3 == 1) g = f;
 		if (t % 3 == 2) b = f;
-		world.addCircle(rand() % sizex, rand() % sizex, rand() % 160 + 80, sf::Color(r, g, b));
+		world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 160 + 80, sf::Color(r, g, b));
 	}
 	for (int i = 0; i < (rand() % 300 + 50); i++)
 	{
@@ -57,7 +59,7 @@ int main()
 		if (t % 3 == 0) r = f;
 		if (t % 3 == 1) g = f;
 		if (t % 3 == 2) b = f;
-		world.addCircle(rand() % sizex, rand() % sizex, rand() % 100 + 120, sf::Color(r, g, b));
+		world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 100 + 120, sf::Color(r, g, b));
 	}
 	for (int i = 0; i < (rand() % 80 + 30); i++)
 	{
@@ -69,27 +71,13 @@ int main()
 		if (t % 3 == 0) r = f;
 		if (t % 3 == 1) g = f;
 		if (t % 3 == 2) b = f;
-		world.addCircle(rand() % sizex, rand() % sizex, rand() % 320 + 220, sf::Color(r, g, b));
+		world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 320 + 220, sf::Color(r, g, b));
 	}
 	clock.restart();
 	while (window.isOpen())
 	{
 
 		sf::Event event;
-		sf::Time elapsed = clock.restart();
-		if (!pause)
-			if (world.units.size() > 0)
-			{
-				std::list<Unit>::iterator it = world.units.begin();
-				while (it != world.units.end())
-				{
-					it->live();
-					it++;
-				}
-			}
-
-
-
 		while (window.pollEvent(event))
 		{
 			if (event.type == sf::Event::Closed || (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
@@ -111,15 +99,15 @@ int main()
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::R)
 			{
-				world.addCircle(rand() % sizex, rand() % sizex, rand() % 360 + 160, sf::Color(rand() % 120 + 100, 0, 0));
+				world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 360 + 160, sf::Color(rand() % 120 + 100, 0, 0));
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::G)
 			{
-				world.addCircle(rand() % sizex, rand() % sizex, rand() % 360 + 160, sf::Color(0, rand() % 120 + 100, 0));
+				world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 360 + 160, sf::Color(0, rand() % 120 + 100, 0));
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::B)
 			{
-				world.addCircle(rand() % sizex, rand() % sizex, rand() % 360 + 160, sf::Color(0, 0, rand() % 120 + 100));
+				world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 360 + 160, sf::Color(0, 0, rand() % 120 + 100));
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::C)
 			{
@@ -152,61 +140,63 @@ int main()
 						resist.g = 20;
 					}
 
-					world.units.push_back(Unit(&window, &world, &settings, rand() % (int)(sizex), rand() % (int)(sizey), resist));
+					world.units.push_back(Unit(&window, &world, &settings, rand() % (int)(settings.size_x), rand() % (int)(settings.size_y), resist));
 				}
 			}
 			
 
 		}
 
-		sf::Time elapsed1;
-		if (!stop) 
-		{ 
-			elapsed1 = timeclock.getElapsedTime(); 
-		}
-		time_ = elapsed1.asSeconds();
-
-		frames ++;
-		if (time_ != oldtime_)
+		if ( (!pause) && (world.units.size() > 0))
 		{
-			oldtime_ = time_;
+			std::list<Unit>::iterator it = world.units.begin();
+			while (it != world.units.end())
+			{
+				it->live();
+				it++;
+			}
+		}
+
+		if (!stop) 
+			time = clock.getElapsedTime();
+
+		frames++;
+		if ( (int)(time.asSeconds()) != (int)(oldtime.asSeconds()))
+		{
+			oldtime = time;
 			fps = frames;
 			frames = 0;
 		}
 		if (world.getUnitCount() == 0) stop = true;
 
-		char* str2 = new char[10];
-		char* str3 = new char[10];
-		char* str4 = new char[10];
-		_itoa(world.getUnitCount(), str2, 10);
-		_itoa(time_, str3, 10);
-		_itoa(fps, str4, 10);
-		window.setTitle(sf::String("Units: ") + sf::String(str2) + sf::String(";  Time: ") + sf::String(str3) + sf::String(" s.  Framerate: ") + sf::String(str4) + sf::String(" FPS."));
+
+		std::stringstream title;
+		title << "Units: " << world.getUnitCount() << "; Time: " << (int)(time.asSeconds()) << "s; FPS: " << fps;
+		window.setTitle(sf::String(title.str()));
 
 		window.clear();
 		world.draw();
 
 		if (world.units.size() > 0)
 		{
-			std::list<Unit>::iterator it = world.units.begin();
-			while (it != world.units.end())
+			std::list<Unit>::iterator unit = world.units.begin();
+			while (unit != world.units.end())
 			{
-				if (it->isAlive())
+				if (unit->isAlive())
 				{
 					if (candraw)
-						it->draw();
-					it++;
+						unit->draw();
+					unit++;
 				}
 				else
 				{
-					if (it != world.units.end())
-						it = world.units.erase(it);
+					if (unit != world.units.end())
+						unit = world.units.erase(unit);
 					else world.units.pop_back();
 				}
 			}
 		}
 		window.display();
-
 	}
 
 	return 0;

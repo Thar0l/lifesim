@@ -38,7 +38,7 @@ direction Unit::searchFood(int r)
 	sf::Vector2f curfoodpoint = sf::Vector2f(image.getPosition().x, image.getPosition().y);
 	sf::Vector2f maxfoodpoint = curfoodpoint;
 
-	if (curfood > 0) return null;
+	if (curfood > 30) return null;
 
 	for (int i = -r; i < r; i++)
 	{
@@ -55,7 +55,7 @@ direction Unit::searchFood(int r)
 	if (maxfoodpoint != curfoodpoint)
 	{
 		sf::Vector2f delta = maxfoodpoint - curfoodpoint;
-		if (abs(delta.x) < abs(delta.y))
+		if (abs(delta.x) > abs(delta.y))
 		{
 			if (delta.y > 0) return down;
 			return up;
@@ -260,13 +260,8 @@ void Unit::live()
 		int tmp = rand() % 100;
 		if (tmp < 10)
 			split();
-		if (!eat())
-		{
-			direction dir = searchFood(size*3);
-			move(dir);
-		}
-			
-
+		eat();
+		move(searchFood(size * 10));
 	}
 }
 
