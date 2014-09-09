@@ -212,7 +212,7 @@ int main()
 
 
 		std::stringstream title;
-		title << "Units: " << world.getUnitCount() << "; Time: " << (int)(time.asSeconds()) << "s; FPS: " << fps;
+		title << "Units: " << world.getUnitCount() << "; Died: " << world.died << "; Time: " << (int)(time.asSeconds()) << "s; FPS: " << fps;
 		window.setTitle(sf::String(title.str()));
 
 		window.clear();

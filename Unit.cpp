@@ -185,8 +185,8 @@ void Unit::split()
 			childsresist[i].g = g;
 			childsresist[i].b = b;
 		}
-		world->units.push_back(Unit(window, world, settings, image.getPosition().x + rand() % (2 * size + 1) - size, image.getPosition().y + rand() % (2 * size + 1) - size, childsresist[0]));
-		world->units.push_back(Unit(window, world, settings, image.getPosition().x + rand() % (2 * size + 1) - size, image.getPosition().y + rand() % (2 * size + 1) - size, childsresist[1]));
+		world->units.push_back(Unit(window, world, settings, image.getPosition().x + rand() % (2 * size + 1) - size, image.getPosition().y + rand() % (4 * size + 1) - size, childsresist[0]));
+		world->units.push_back(Unit(window, world, settings, image.getPosition().x + rand() % (2 * size + 1) - size, image.getPosition().y + rand() % (4 * size + 1) - size, childsresist[1]));
 		food = 0;
 		alive = false;
 		size = 0;
@@ -213,6 +213,7 @@ void Unit::live()
 	{
 		if (food <= 0)
 		{
+			world->died++;
 			alive = false;
 		}
 		growth();

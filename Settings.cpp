@@ -29,18 +29,18 @@ Settings::Settings(std::string filename)
 	health_get = reader.GetInteger("Unit", "health_get", 5);
 	con_energy_move = reader.GetInteger("Unit", "con_energy_move", 3);
 	con_energy_split = reader.GetInteger("Unit", "con_energy_split", 3);
-	con_food_spend = reader.GetInteger("Unit", "con_food_spend", 10);
+	con_food_spend = reader.GetInteger("Unit", "con_food_spend", 1);
 	con_food_heal = reader.GetInteger("Unit", "con_food_heal", 5);
 	con_food_energy = reader.GetInteger("Unit", "con_food_energy", 5);
-	con_food_split = reader.GetInteger("Unit", "con_food_split", 4200);
-	con_food_growth = reader.GetInteger("Unit", "con_food_growth", 3000);
+	con_food_split = reader.GetInteger("Unit", "con_food_split",50000);
+	con_food_growth = reader.GetInteger("Unit", "con_food_growth", 40000);
 	con_health_hunger = reader.GetInteger("Unit", "con_health_hunger", 3);
 	env_mod = reader.GetInteger("Unit", "env_mod", 2);
 	resist_dif = reader.GetInteger("Unit", "resist_dif", 150);
 	resist_damage = reader.GetInteger("Unit", "resist_damage", 1);
 
 	start_units = reader.GetInteger("World", "start_units", 96);
-	max_units = reader.GetInteger("World", "max_units", 1000);
+	max_units = reader.GetInteger("World", "max_units", 10000);
 	start_color_r = reader.GetInteger("World", "start_color_r", 20);
 	start_color_g = reader.GetInteger("World", "start_color_g", 20);
 	start_color_b = reader.GetInteger("World", "start_color_b", 20);

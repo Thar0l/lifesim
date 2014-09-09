@@ -17,7 +17,7 @@ private:
 	bool existPoint(int x, int y);
 
 public:
-	
+	int died;
 	std::list<Unit> units;
 	World(sf::RenderWindow* window, Settings* settings, int width, int height);
 	void draw();

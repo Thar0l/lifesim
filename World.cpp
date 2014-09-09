@@ -11,6 +11,7 @@ bool World::existPoint(int x, int y)
 
 World::World(sf::RenderWindow* window, Settings* settings, int width, int height)
 {
+	died = 0;
 	this->window = window;
 	this->settings = settings;
 	size.x = width;
