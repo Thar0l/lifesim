@@ -29,8 +29,6 @@ public:
 	void draw();
 	direction searchFood(int r);
 	~Unit();
-
 	void live();
-
 	bool isAlive();
 };

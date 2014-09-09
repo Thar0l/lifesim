@@ -21,20 +21,14 @@ Unit::Unit(sf::RenderWindow* window, World* world, int x, int y, sf::Color res)
 	image.setRadius(2 * size);
 	image.setOutlineThickness(2);
 	image.setOutlineColor(sf::Color::Blue);
-	/*if ((resist.r < 20) && (resist.g < 20))
-		image.setOutlineColor(sf::Color::Black);
-	else if (resist.r > resist.g) 
-		image.setOutlineColor(sf::Color::Magenta); 
-	else if (resist.r < resist.g)
-		image.setOutlineColor(sf::Color::Green);
-	else
-		image.setOutlineColor(sf::Color::Yellow);*/
 }
+
 
 void Unit::draw()
 {
 	window->draw(image);
 }
+
 
 direction Unit::searchFood(int r)
 {
@@ -74,6 +68,7 @@ direction Unit::searchFood(int r)
 
 	return null;
 }
+
 
 void Unit::move(direction dir)
 {
@@ -131,13 +126,12 @@ void Unit::move(direction dir)
 	}
 }
 
+
 bool Unit::eat()
 {
 	bool eaten = false;
-	int t = 0;
 	int i = 0;
 	int j = 0;
-//	std::cout << "!";
 	for (int i = -size; i <= size; i++)
 	{
 		for (int j = -size; j <= size; j++)
@@ -147,10 +141,8 @@ bool Unit::eat()
 				sf::Color worldpoint = world->getPoint(image.getPosition().x + i, image.getPosition().y + j);
 				if (worldpoint.b >= world->settings->eat_food)
 				{
-//					std::cout << "*";
 					worldpoint.b -= world->settings->eat_food;
 					food += world->settings->eat_food;
-					t += 1;
 					world->setPoint(image.getPosition().x + i, image.getPosition().y + j, worldpoint);
 					move(null);
 					eaten = true;
@@ -158,10 +150,8 @@ bool Unit::eat()
 			}
 		}
 	}
-//	std::cout << "eaten: "<<t<<std::endl;
 	return eaten;
 }
-
 
 
 void Unit::split()
@@ -185,11 +175,6 @@ void Unit::split()
 			childsresist[i].g = g;
 			childsresist[i].b = b;
 		}
-		std::cout << (int)(resist.r) << ":" << (int)(resist.g) << ":" << (int)(resist.b);
-		std::cout << " >> ";
-		std::cout << (int)(childsresist[0].r) << ":" << (int)(childsresist[0].g) << ":" << (int)(childsresist[0].b);
-		std::cout << " + ";
-		std::cout << (int)(childsresist[1].r) << ":" << (int)(childsresist[1].g) << ":" << (int)(childsresist[1].b) << std::endl;
 		world->units.push_back(Unit(window, world, image.getPosition().x + rand() % (2 * size + 1) - size, image.getPosition().y + rand() % (2 * size + 1) - size, childsresist[0]));
 		world->units.push_back(Unit(window, world, image.getPosition().x + rand() % (2 * size + 1) - size, image.getPosition().y + rand() % (2 * size + 1) - size, childsresist[1]));
 		food = 0;
@@ -198,6 +183,7 @@ void Unit::split()
 	}
 	
 }
+
 
 void Unit::growth()
 {
@@ -209,6 +195,7 @@ void Unit::growth()
 		image.setOrigin(size, size);
 	}
 }
+
 
 void Unit::live()
 {
@@ -225,7 +212,6 @@ void Unit::live()
 					int dif = sqrt((env.r - resist.r)*(env.r - resist.r) + (env.g - resist.g)*(env.g - resist.g));
 					if (dif != 0)
 					{
-						//std::cout << dif << std::endl;
 						int r = env.r;
 						int g = env.g;
 						int b = env.b;
@@ -245,10 +231,7 @@ void Unit::live()
 						env.b = b;
 						world->setPoint(image.getPosition().x + i, image.getPosition().y + j, env);
 					}
-
 				}
-				/*if ( ((image.getPosition().x + i) > 0) && ((image.getPosition().y + j) > 0) && ((image.getPosition().x + i) < (world->getSize().x - 1)) && ((image.getPosition().y + j) < (world->getSize().y) - 1))
-					world->BlurPoint(image.getPosition().x + i, image.getPosition().y + j);*/
 			}
 		}
 		if ((health < (world->settings->health_heal)) && (food > (world->settings->con_food_heal)))
@@ -269,28 +252,16 @@ void Unit::live()
 		if (health <= 0)
 		{
 			alive = false;
-			world->addCircle(image.getPosition().x, image.getPosition().y, size*2, 0, 0, food/(size*size));
+			world->addCircle(image.getPosition().x, image.getPosition().y, size*2, sf::Color(0, 0, food/(size*size)));
 			size = 0;
 		}
-		//std::cout << "H: " << health << ". F: " << food << ". E: " << energy << std::endl;
 		growth();
 		int tmp = rand() % 100;
 		if (tmp < 10)
 			split();
 		if (!eat())
 		{
-			
 			direction dir = searchFood(size*3);
-			/*
-			for (int i = -size; i <= size; i++)
-			{
-				for (int j = -size; j <= size; j++)
-				{
-					if ((image.getPosition().x + i > 0) && (image.getPosition().y + j > 0) && (image.getPosition().x + i < world->getSize().x - 1) && (image.getPosition().y + j < world->getSize().y) - 1)
-						world->BlurPoint(image.getPosition().x + i, image.getPosition().y + j);
-				}
-			}
-			*/
 			move(dir);
 		}
 			
@@ -298,9 +269,11 @@ void Unit::live()
 	}
 }
 
+
 Unit::~Unit()
 {
 }
+
 
 bool Unit::isAlive()
 {

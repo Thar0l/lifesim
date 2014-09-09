@@ -6,13 +6,8 @@
 
 int main()
 {
-
-
-
 	int sizex = 1920;
 	int sizey = 1017;
-	//int sizex = 300;
-	//int sizey = 300;
 	float x = 100.0;
 	float y = 100.0;
 	float d = 5.0;
@@ -31,7 +26,7 @@ int main()
 	
 	window.setFramerateLimit(0);
 	window.setVerticalSyncEnabled(false);
-	//window.setFramerateLimit(40);
+	window.setFramerateLimit(40);
 	srand(time(NULL));
 
 	bool candraw = true;
@@ -39,8 +34,6 @@ int main()
 	
 
 	World world(&window, sizex, sizey);
-	//sf::Thread blurthread(&blur, &world);
-	
 	
 	for (int i = 0; i < (rand() % 200 + 40); i++)
 	{
@@ -52,7 +45,7 @@ int main()
 		if (t % 3 == 0) r = f;
 		if (t % 3 == 1) g = f;
 		if (t % 3 == 2) b = f;
-		world.addCircle(rand() % sizex, rand() % sizex, rand() % 160 + 80, r, g, b);
+		world.addCircle(rand() % sizex, rand() % sizex, rand() % 160 + 80, sf::Color(r, g, b));
 	}
 	for (int i = 0; i < (rand() % 300 + 50); i++)
 	{
@@ -64,7 +57,7 @@ int main()
 		if (t % 3 == 0) r = f;
 		if (t % 3 == 1) g = f;
 		if (t % 3 == 2) b = f;
-		world.addCircle(rand() % sizex, rand() % sizex, rand() % 100 + 120, r, g, b);
+		world.addCircle(rand() % sizex, rand() % sizex, rand() % 100 + 120, sf::Color(r, g, b));
 	}
 	for (int i = 0; i < (rand() % 80 + 30); i++)
 	{
@@ -76,7 +69,7 @@ int main()
 		if (t % 3 == 0) r = f;
 		if (t % 3 == 1) g = f;
 		if (t % 3 == 2) b = f;
-		world.addCircle(rand() % sizex, rand() % sizex, rand() % 320 + 220, r, g, b);
+		world.addCircle(rand() % sizex, rand() % sizex, rand() % 320 + 220, sf::Color(r, g, b));
 	}
 	clock.restart();
 	while (window.isOpen())
@@ -95,28 +88,13 @@ int main()
 				}
 			}
 
-			//if (indexj > world.settings->blur_delay)
-			/*{
-				world.BlurBlock(indexi % (sizex / world.settings->block_size_x + 1), indexi / (sizex / world.settings->block_size_y + 1));
-				indexi++;
-				if (indexi > ((sizex / world.settings->block_size_x + 1) * (sizey / world.settings->block_size_y + 1)))
-				{
-					indexi = 0;
-					indexj = 0;
-				}
-			}*/
-			//else
-			//	indexj++;
 
 
 		while (window.pollEvent(event))
 		{
 			if (event.type == sf::Event::Closed || (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
 				window.close();
-			/*if (event.type == sf::Event::MouseButtonPressed)
-			{
-				world.addCircle(sf::, 650, 380, 0, 0, 255);
-			}*/
+
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::V)
 			{
 				if (candraw) 
@@ -133,24 +111,19 @@ int main()
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::R)
 			{
-				world.addCircle(rand() % sizex, rand() % sizex, rand() % 360 + 160, rand() % 120 + 100, 0, 0);
+				world.addCircle(rand() % sizex, rand() % sizex, rand() % 360 + 160, sf::Color(rand() % 120 + 100, 0, 0));
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::G)
 			{
-				world.addCircle(rand() % sizex, rand() % sizex, rand() % 360 + 160, 0, rand() % 120 + 100, 0);
+				world.addCircle(rand() % sizex, rand() % sizex, rand() % 360 + 160, sf::Color(0, rand() % 120 + 100, 0));
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::B)
 			{
-				world.addCircle(rand() % sizex, rand() % sizex, rand() % 360 + 160, 0, 0, rand() % 120 + 100);
+				world.addCircle(rand() % sizex, rand() % sizex, rand() % 360 + 160, sf::Color(0, 0, rand() % 120 + 100));
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::C)
 			{
 				world.Clear();
-			}
-			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::BackSpace)
-			{
-				world.Blur(0);
-				
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::A)
 			{
