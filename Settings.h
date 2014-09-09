@@ -7,6 +7,9 @@
 class Settings
 {
 public:
+	//Application
+	int size_x;
+	int size_y;
 	//Unit
 	int start_size;
 	int start_food;
@@ -40,6 +43,7 @@ public:
 	int blur_delay;
 
 	Settings(std::string filename);
+	void print();
 	~Settings();
 };
 
