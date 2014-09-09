@@ -4,6 +4,10 @@
 #include "Unit.h"
 #include "Settings.h"
 
+#define empty_mode 0
+#define circle_mode 1
+#define unit_mode 2
+
 void srand()
 {
 	srand(time(NULL));
@@ -13,6 +17,7 @@ int main()
 {
 	bool stop = false;
 	bool pause = false;
+	int mode = empty_mode;
 	sf::Time time = sf::Time::Zero;
 	sf::Time oldtime = sf::Time::Zero;
 	int frames = 0;
@@ -37,18 +42,18 @@ int main()
 	
 	
 	
-	for (int i = 0; i < (rand() % 200 + 40); i++)
+	for (int i = 0; i < (rand() % 200 + 150); i++)
 	{
-		int t = rand() % 3;
-		int f = rand() % 200;
+		int t = i;
+		int f = 255;
 		int r = 0;
 		int g = 0;
 		int b = 0;
 		if (t % 3 == 0) r = f;
 		if (t % 3 == 1) g = f;
 		if (t % 3 == 2) b = f;
-		world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 160 + 80, sf::Color(r, g, b));
-	}
+		world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 200 + 80, sf::Color(r, g, b));
+	}/*
 	for (int i = 0; i < (rand() % 300 + 50); i++)
 	{
 		int t = rand() % 3;
@@ -72,7 +77,7 @@ int main()
 		if (t % 3 == 1) g = f;
 		if (t % 3 == 2) b = f;
 		world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 320 + 220, sf::Color(r, g, b));
-	}
+	}*/
 	clock.restart();
 	while (window.isOpen())
 	{
@@ -99,45 +104,81 @@ int main()
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::R)
 			{
-				world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 360 + 160, sf::Color(rand() % 120 + 100, 0, 0));
+				if (mode == circle_mode)
+					world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 360 + 160, sf::Color(rand() % 120 + 100, 0, 0));
+				if (mode == unit_mode)
+					world.units.push_back(Unit(&window, &world, &settings, rand() % (int)(settings.size_x), rand() % (int)(settings.size_y), sf::Color(255, 0, 0)));
+				mode = empty_mode;
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::G)
 			{
-				world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 360 + 160, sf::Color(0, rand() % 120 + 100, 0));
+				if (mode == circle_mode)
+					world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 360 + 160, sf::Color(0, rand() % 120 + 100, 0));
+				if (mode == unit_mode)
+					world.units.push_back(Unit(&window, &world, &settings, rand() % (int)(settings.size_x), rand() % (int)(settings.size_y), sf::Color(0, 255, 0)));
+				mode = empty_mode;
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::B)
 			{
-				world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 360 + 160, sf::Color(0, 0, rand() % 120 + 100));
+				if (mode == circle_mode)
+					world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 360 + 160, sf::Color(0, 0, rand() % 120 + 100));
+				if (mode == unit_mode)
+					world.units.push_back(Unit(&window, &world, &settings, rand() % (int)(settings.size_x), rand() % (int)(settings.size_y), sf::Color(0, 0, 255)));
+				mode = empty_mode;
 			}
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::C)
 			{
 				world.Clear();
 			}
+			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::U)
+			{
+				mode = unit_mode;
+			}
+			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::E)
+			{
+				mode = circle_mode;
+			}
+
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::A)
 			{
-				for (int i = 0; i < 8; i++)
+				for (int i = 0; i < 12; i++)
 				{
 					sf::Color resist;
-					resist.b = 0;
-					if (i % 4 == 0)
+					if (i % 6 == 0)
 					{
-						resist.r = 240;
-						resist.g = 20;
+						resist.r = 255;
+						resist.g = 0;
+						resist.b = 0;
 					}
-					else if (i % 4 == 1)
+					else if (i % 6 == 1)
 					{
-						resist.r = 20;
-						resist.g = 240;
+						resist.r = 0;
+						resist.g = 255;
+						resist.b = 0;
 					}
-					else if (i % 4 == 2)
+					else if (i % 6 == 2)
 					{
-						resist.r = 220;
-						resist.g = 220;
+						resist.r = 0;
+						resist.g = 0;
+						resist.b = 255;
+					}
+					else if (i % 6 == 3)
+					{
+						resist.r = 255;
+						resist.g = 0;
+						resist.b = 255;
+					}
+					else if (i % 6 == 4)
+					{
+						resist.r = 255;
+						resist.g = 255;
+						resist.b = 0;
 					}
 					else
 					{
-						resist.r = 20;
-						resist.g = 20;
+						resist.r = 255;
+						resist.g = 255;
+						resist.b = 0;
 					}
 
 					world.units.push_back(Unit(&window, &world, &settings, rand() % (int)(settings.size_x), rand() % (int)(settings.size_y), resist));

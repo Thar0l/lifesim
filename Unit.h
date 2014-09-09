@@ -20,9 +20,14 @@ private:
 	int size;
 
 	void move(direction dir);
-	bool eat();
+	bool _eat();
 	void split();
 	void growth();
+
+	void eat();
+	void fill();
+	
+
 
 
 public:
