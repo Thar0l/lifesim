@@ -13,6 +13,7 @@ private:
 	Settings* settings;
 	sf::Texture texture;
 	sf::Sprite sprite;
+	sf::Shader shader;
 
 	bool existPoint(int x, int y);
 
