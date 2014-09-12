@@ -2,6 +2,15 @@
 
 #include "Unit.h"
 
+sf::Color neg(sf::Color color)
+{
+	sf::Color result;
+	result.r = 255 - color.r;
+	result.g = 255 - color.g;
+	result.b = 255 - color.b;
+	return result;
+}
+
 
 Unit::Unit(sf::RenderWindow* window, World* world, Settings* settings, int x, int y, sf::Color res)
 {
@@ -21,7 +30,7 @@ Unit::Unit(sf::RenderWindow* window, World* world, Settings* settings, int x, in
 	image.setOrigin(size, size);
 	image.setRadius(2 * size);
 	image.setOutlineThickness(2);
-	image.setOutlineColor(sf::Color::Blue);
+	image.setOutlineColor(neg(resist));
 }
 
 
@@ -122,15 +131,15 @@ void Unit::move(direction dir)
 		if (position.y < 0) position.y = 0;
 		if (position.x >= world->getSize().x) position.x = world->getSize().x - 1;
 		if (position.y >= world->getSize().y) position.y = world->getSize().y - 1;
-		energy -= (settings->con_energy_move)*size;
+		//energy -= (settings->con_energy_move)*size;
 		image.setPosition(position);
 	}
 }
 
 
-bool Unit::eat()
+bool Unit::_eat()
 {
-	bool eaten = false;
+	bool eaten = false;/*
 	int i = 0;
 	int j = 0;
 	for (int i = -size; i <= size; i++)
@@ -150,14 +159,14 @@ bool Unit::eat()
 				}
 			}
 		}
-	}
+	}*/
 	return eaten;
 }
 
 
 void Unit::split()
 {
-	
+	//std::cout << food << "/" << settings->con_food_split << std::endl;
 	if ((food > settings->con_food_split) && (world->getUnitCount() < settings->max_units) && (size > 1))
 	{
 		sf::Color childsresist[2];
@@ -176,8 +185,8 @@ void Unit::split()
 			childsresist[i].g = g;
 			childsresist[i].b = b;
 		}
-		world->units.push_back(Unit(window, world, settings, image.getPosition().x + rand() % (2 * size + 1) - size, image.getPosition().y + rand() % (2 * size + 1) - size, childsresist[0]));
-		world->units.push_back(Unit(window, world, settings, image.getPosition().x + rand() % (2 * size + 1) - size, image.getPosition().y + rand() % (2 * size + 1) - size, childsresist[1]));
+		world->units.push_back(Unit(window, world, settings, image.getPosition().x + rand() % (2 * size + 1) - size, image.getPosition().y + rand() % (4 * size + 1) - size, childsresist[0]));
+		world->units.push_back(Unit(window, world, settings, image.getPosition().x + rand() % (2 * size + 1) - size, image.getPosition().y + rand() % (4 * size + 1) - size, childsresist[1]));
 		food = 0;
 		alive = false;
 		size = 0;
@@ -202,69 +211,91 @@ void Unit::live()
 {
 	if (alive)
 	{
-		food -= (settings->con_food_spend)*(size*size);
-		for (int i = -size; i <= size; i++)
-		{
-			for (int j = -size; j <= size; j++)
-			{
-				if ((i * i + j * j) <= (size)* (size))
-				{
-					sf::Color env = world->getPoint(image.getPosition().x+i, image.getPosition().y+j);
-					int dif = sqrt((env.r - resist.r)*(env.r - resist.r) + (env.g - resist.g)*(env.g - resist.g));
-					if (dif != 0)
-					{
-						int r = env.r;
-						int g = env.g;
-						int b = env.b;
-						if (dif >= (settings->resist_dif)) health -= (settings->resist_damage);
-						if (r > resist.r) r -= (settings->env_mod);
-						if (r < resist.r) r += (settings->env_mod);
-						if (g > resist.g) g -= (settings->env_mod);
-						if (g < resist.g) g += (settings->env_mod);
-						if (r > 255) r = 255;
-						if (g > 255) g = 255;
-						if (b > 255) b = 255;
-						if (r < 0) r = 0;
-						if (g < 0) g = 0;
-						if (b < 0) b = 0;
-						env.r = r;
-						env.g = g;
-						env.b = b;
-						world->setPoint(image.getPosition().x + i, image.getPosition().y + j, env);
-					}
-				}
-			}
-		}
-		if ((health < (settings->health_heal)) && (food > (settings->con_food_heal)))
-		{
-			food -= (settings->con_food_heal);
-			health += (settings->health_get);
-		}
-		if (health > 100) health = 100;
-		if ((energy < (settings->con_energy_move)) && (food >(settings->con_food_energy)))
-		{
-			food -= (settings->con_food_energy);
-			energy += (settings->energy_get);
-		}
 		if (food <= 0)
 		{
-			health -= (settings->con_health_hunger);
-		}
-		if (health <= 0)
-		{
+			world->died++;
 			alive = false;
-			world->addCircle(image.getPosition().x, image.getPosition().y, size*2, sf::Color(0, 0, food/(size*size)));
-			size = 0;
 		}
 		growth();
-		int tmp = rand() % 100;
-		if (tmp < 10)
-			split();
+		split();
 		eat();
-		move(searchFood(size * 10));
+		fill();
+		move(null);
 	}
 }
 
+void Unit::eat()
+{
+	//std::cout << food << " ";
+	for (int i = -size; i <= size; i++)
+	{
+		for (int j = -size; j <= size; j++)
+		{
+			if ((i * i + j * j) <= (size)* (size))
+			{
+				//std::cout << "*";
+				sf::Color worldpoint = world->getPoint(image.getPosition().x + i, image.getPosition().y + j);
+				if ((worldpoint.r - resist.r) >= settings->eat_food)
+				{
+					if (worldpoint.r >= settings->eat_food)
+					worldpoint.r -= settings->eat_food;
+					food += settings->eat_food;
+				}
+				if ((worldpoint.g >= resist.g) >= settings->eat_food)
+				{
+					if (worldpoint.g >= settings->eat_food)
+					worldpoint.g -= settings->eat_food;
+					food += settings->eat_food;
+				}
+				if ((worldpoint.b >= resist.b) >= settings->eat_food)
+				{
+					if (worldpoint.b >= settings->eat_food)
+					worldpoint.b -= settings->eat_food;
+					food += settings->eat_food;
+				}
+				world->setPoint(image.getPosition().x + i, image.getPosition().y + j, worldpoint);
+			}
+		}
+	}
+	//std::cout << food << std::endl;
+}
+
+void Unit::fill()
+{
+	//if (food <= settings->con_food_spend) return;
+	//std::cout << food << " ";
+	for (int i = -size; i <= size; i++)
+	{
+		for (int j = -size; j <= size; j++)
+		{
+			if (((i * i + j * j) <= (size)* (size)))
+			{
+				sf::Color worldpoint = world->getPoint(image.getPosition().x + i, image.getPosition().y + j);
+				sf::Color old = worldpoint;
+				//std::cout << (int)(resist.r) << " " << (int)(resist.g) << " " << (int)(resist.b) << " : " << (int)(worldpoint.r) << " " << (int)(worldpoint.g) << " " << (int)(worldpoint.b) << std::endl;
+				if ((resist.r - worldpoint.r) > settings->con_food_spend)
+				{
+					worldpoint.r += settings->con_food_spend;
+					food -= settings->con_food_spend;
+				}
+				if ((resist.g - worldpoint.g) > settings->con_food_spend)
+				{
+					worldpoint.g += settings->con_food_spend;
+					food -= settings->con_food_spend;
+				}
+				if ((resist.b - worldpoint.b) > settings->con_food_spend)
+				{
+					worldpoint.b += settings->con_food_spend;
+					food -= settings->con_food_spend;
+				}
+				//if ((worldpoint.r - old.r >= 1) || (worldpoint.g - old.g >= 1) || (worldpoint.b - old.b >= 1))
+				//std::cout << (int)(worldpoint.r - old.r) << " " << (int)(worldpoint.g - old.g) << " " << (int)(worldpoint.b - old.b) << std::endl;
+				world->setPoint(image.getPosition().x + i, image.getPosition().y + j, worldpoint);
+			}
+		}
+	}
+	//std::cout << food << std::endl;
+}
 
 Unit::~Unit()
 {
