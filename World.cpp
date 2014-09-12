@@ -26,6 +26,11 @@ World::World(sf::RenderWindow* window, Settings* settings, int width, int height
 		}
 	}
 	texture.loadFromImage(points);
+	this->shader.loadFromFile("blur.vert", "blur.frag");
+	this->shader.setParameter("texture", sf::Shader::CurrentTexture);
+	this->shader.setParameter("width", width);
+	this->shader.setParameter("height", height);
+
 	for (int i = 0; i < settings->start_units; i++)
 	{
 		sf::Color resist;
@@ -73,9 +78,15 @@ World::World(sf::RenderWindow* window, Settings* settings, int width, int height
 
 void World::draw()
 {
+	sf::RenderStates RenderStates = sf::RenderStates::Default;
 	texture.update(points);
+	shader.setParameter("texture", texture);
 	sprite.setTexture(texture);
-	window->draw(sprite);
+	RenderStates.texture = &texture;
+	RenderStates.shader = &shader;
+	window->draw(sprite, RenderStates);
+
+
 }
 
 
@@ -130,19 +141,19 @@ void World::addCircle(int x, int y, int r, sf::Color color)
 				float tmp;
 				if (color.r > 0)
 				{
-					tmp = point.r + color.r - sqrt(i * i + j * j) * color.r / r;
+					tmp = color.r + point.r - sqrt(i * i + j * j) * color.r / r;
 					if (tmp > 255.0) tmp = 255.0;
 					point.r = tmp;
 				}
 				if (color.g > 0)
 				{
-					tmp = point.g + color.g - sqrt(i * i + j * j) * color.g / r;
+					tmp = color.g + point.g - sqrt(i * i + j * j) * color.g / r;
 					if (tmp > 255.0) tmp = 255.0;
 					point.g = tmp;
 				}
 				if (color.b > 0)
 				{
-					tmp = point.b + color.b - sqrt(i * i + j * j) * color.b / r;
+					tmp = color.b + point.b - sqrt(i * i + j * j) * color.b / r;
 					if (tmp > 255.0) tmp = 255.0;
 					point.b = tmp;
 				}
