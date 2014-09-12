@@ -18,7 +18,7 @@ Settings::Settings(std::string filename)
 	size_y = reader.GetInteger("App", "size_y", 1000);
 
 	start_size = reader.GetInteger("Unit", "start_size", 1);
-	start_food = reader.GetInteger("Unit", "start_food", 800);
+	start_food = reader.GetInteger("Unit", "start_food", 50);
 	start_energy = reader.GetInteger("Unit", "start_energy", 30);
 	start_health = reader.GetInteger("Unit", "start_health", 100);
 	speed = reader.GetInteger("Unit", "speed", 1);
@@ -32,18 +32,18 @@ Settings::Settings(std::string filename)
 	con_food_spend = reader.GetInteger("Unit", "con_food_spend", 1);
 	con_food_heal = reader.GetInteger("Unit", "con_food_heal", 5);
 	con_food_energy = reader.GetInteger("Unit", "con_food_energy", 5);
-	con_food_split = reader.GetInteger("Unit", "con_food_split",50000);
+	con_food_split = reader.GetInteger("Unit", "con_food_split",100000);
 	con_food_growth = reader.GetInteger("Unit", "con_food_growth", 40000);
 	con_health_hunger = reader.GetInteger("Unit", "con_health_hunger", 3);
-	env_mod = reader.GetInteger("Unit", "env_mod", 2);
+	env_mod = reader.GetInteger("Unit", "env_mod", 10);
 	resist_dif = reader.GetInteger("Unit", "resist_dif", 150);
 	resist_damage = reader.GetInteger("Unit", "resist_damage", 1);
 
-	start_units = reader.GetInteger("World", "start_units", 96);
-	max_units = reader.GetInteger("World", "max_units", 10000);
-	start_color_r = reader.GetInteger("World", "start_color_r", 20);
-	start_color_g = reader.GetInteger("World", "start_color_g", 20);
-	start_color_b = reader.GetInteger("World", "start_color_b", 20);
+	start_units = reader.GetInteger("World", "start_units", 600);
+	max_units = reader.GetInteger("World", "max_units", 3200);
+	start_color_r = reader.GetInteger("World", "start_color_r", 0);
+	start_color_g = reader.GetInteger("World", "start_color_g", 0);
+	start_color_b = reader.GetInteger("World", "start_color_b", 40);
 	block_size_x = reader.GetInteger("World", "block_size_x", 8);
 	block_size_y = reader.GetInteger("World", "block_size_y", 1080);
 	blur_delay = reader.GetInteger("World", "blur_delay", 0);
