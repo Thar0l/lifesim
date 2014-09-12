@@ -210,6 +210,7 @@ void Unit::eat()
 		{
 			if ((i * i + j * j) <= (size)* (size))
 			{
+				
 				sf::Color worldpoint = world->getPoint(image.getPosition().x + i, image.getPosition().y + j);
 				if ((worldpoint.r - resist.r) >= settings->eat_food)
 				{
@@ -217,13 +218,13 @@ void Unit::eat()
 					worldpoint.r -= settings->eat_food;
 					food += settings->eat_food;
 				}
-				if ((worldpoint.g >= resist.g) >= settings->eat_food)
+				if ((worldpoint.g- resist.g) >= settings->eat_food)
 				{
 					if (worldpoint.g >= settings->eat_food)
 					worldpoint.g -= settings->eat_food;
 					food += settings->eat_food;
 				}
-				if ((worldpoint.b >= resist.b) >= settings->eat_food)
+				if ((worldpoint.b - resist.b) >= settings->eat_food)
 				{
 					if (worldpoint.b >= settings->eat_food)
 					worldpoint.b -= settings->eat_food;
