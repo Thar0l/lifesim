@@ -40,10 +40,10 @@ int main()
 	bool candraw = true;
 
 	
+
 	
 	
-	
-	for (int i = 0; i < (rand() % 200 + 150); i++)
+	for (int i = 0; i < (rand() % 120 + 25); i++)
 	{
 		int t = i;
 		int f = 255;
@@ -54,7 +54,7 @@ int main()
 		if (t % 3 == 1) g = f;
 		if (t % 3 == 2) b = f;
 		world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 200 + 80, sf::Color(r, g, b));
-	}/*
+	}
 	for (int i = 0; i < (rand() % 300 + 50); i++)
 	{
 		int t = rand() % 3;
@@ -78,7 +78,7 @@ int main()
 		if (t % 3 == 1) g = f;
 		if (t % 3 == 2) b = f;
 		world.addCircle(rand() % settings.size_x, rand() % settings.size_x, rand() % 320 + 220, sf::Color(r, g, b));
-	}*/
+	}
 	clock.restart();
 	while (window.isOpen())
 	{
