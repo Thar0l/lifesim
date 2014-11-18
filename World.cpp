@@ -34,42 +34,42 @@ World::World(sf::RenderWindow* window, Settings* settings, int width, int height
 	for (int i = 0; i < settings->start_units; i++)
 	{
 		sf::Color resist;
-		if (i % 3 == 0) 
+		if (i % 6 == 0) 
 		{
 			resist.r = 250;
 			resist.g = 0;
 			resist.b = 0;
 		}
-		else if (i % 3 == 1)
+		else if (i % 6 == 1)
 		{
 			resist.r = 0;
 			resist.g = 250;
 			resist.b = 0;
 		}
-		else if (i % 3 == 2)
+		else if (i % 6 == 2)
 		{
 			resist.r = 0;
 			resist.g = 0;
 			resist.b = 250;
-		}/*
+		}
 		else if (i % 6 == 3)
 		{
-			resist.r = 240;
-			resist.g = 240;
+			resist.r = 160;
+			resist.g = 160;
 			resist.b = 0;
 		}
 		else if (i % 6 == 4)
 		{
-			resist.r = 240;
+			resist.r = 160;
 			resist.g = 0;
-			resist.b = 240;
+			resist.b = 160;
 		}
 		else
 		{
 			resist.r = 0;
-			resist.g = 240;
-			resist.b = 240;
-		}*/
+			resist.g = 160;
+			resist.b = 160;
+		}
 
 		units.push_back(Unit(window, this, settings, rand() % (int)(size.x), rand() % (int)(size.y), resist));
 	}
@@ -171,7 +171,7 @@ void World::Clear()
 		{
 			for (int j = 0; j < size.y; j++)
 			{
-				sf::Color color = sf::Color(250, 125, 125);
+				sf::Color color = sf::Color(settings->start_color_r, settings->start_color_g, settings->start_color_b);
 				points.setPixel(i, j, color);
 			}
 		}

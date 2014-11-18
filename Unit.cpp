@@ -150,9 +150,9 @@ void Unit::split()
 		sf::Color childsresist[2];
 		for (int i = 0; i < 2; i++)
 		{
-			int r = resist.r + rand() % 21 - 10;
-			int g = resist.g + rand() % 21 - 10;
-			int b = resist.b + rand() % 21 - 10;
+			int r = resist.r + rand() % (21*settings->env_mod) -10 * settings->env_mod;
+			int g = resist.g + rand() % (21*settings->env_mod) -10 * settings->env_mod;
+			int b = resist.b + rand() % (21*settings->env_mod) -10 * settings->env_mod;
 			if (r > 255) r = 255;
 			if (g > 255) g = 255;
 			if (b > 255) b = 255;

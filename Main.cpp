@@ -34,7 +34,7 @@ int main()
 
 	
 	window.setVerticalSyncEnabled(false);
-	window.setFramerateLimit(0);
+	window.setFramerateLimit(300);
 	window.setPosition(sf::Vector2i(0, 0));
 
 	bool candraw = true;
@@ -86,8 +86,11 @@ int main()
 		sf::Event event;
 		while (window.pollEvent(event))
 		{
+
+
 			if (event.type == sf::Event::Closed || (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape))
 				window.close();
+			
 
 			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::V)
 			{
@@ -165,20 +168,20 @@ int main()
 					}
 					else if (i % 6 == 3)
 					{
-						resist.r = 255;
+						resist.r = 125;
 						resist.g = 0;
-						resist.b = 255;
+						resist.b = 125;
 					}
 					else if (i % 6 == 4)
 					{
-						resist.r = 255;
-						resist.g = 255;
+						resist.r = 125;
+						resist.g = 125;
 						resist.b = 0;
 					}
 					else
 					{
-						resist.r = 255;
-						resist.g = 255;
+						resist.r = 125;
+						resist.g = 125;
 						resist.b = 0;
 					}
 
