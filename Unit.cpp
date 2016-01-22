@@ -29,7 +29,7 @@ Unit::Unit(sf::RenderWindow* window, World* world, Settings* settings, int x, in
 	image.setFillColor(resist);
 	image.setOrigin(size, size);
 	image.setRadius(2 * size);
-	image.setOutlineThickness(2);
+	image.setOutlineThickness(1);
 	image.setOutlineColor(neg(resist));
 }
 

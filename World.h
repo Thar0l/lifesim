@@ -20,7 +20,8 @@ private:
 public:
 	int died;
 	std::list<Unit> units;
-	World(sf::RenderWindow* window, Settings* settings, int width, int height);
+	World();
+	void init(sf::RenderWindow* window, Settings* settings, int width, int height);
 	void draw();
 	~World();
 	sf::Color getPoint(int x, int y);

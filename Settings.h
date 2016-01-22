@@ -42,7 +42,8 @@ public:
 	int block_size_y;
 	int blur_delay;
 
-	Settings(std::string filename);
+	Settings();
+	void init(std::string filename);
 	void print();
 	~Settings();
 };

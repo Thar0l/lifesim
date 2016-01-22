@@ -8,8 +8,10 @@ bool World::existPoint(int x, int y)
 	return false;
 }
 
+World::World()
+{}
 
-World::World(sf::RenderWindow* window, Settings* settings, int width, int height)
+void World::init(sf::RenderWindow* window, Settings* settings, int width, int height)
 {
 	died = 0;
 	this->window = window;
@@ -171,7 +173,7 @@ void World::Clear()
 		{
 			for (int j = 0; j < size.y; j++)
 			{
-				sf::Color color = sf::Color(250, 125, 125);
+				sf::Color color = sf::Color(0, 0, 0);
 				points.setPixel(i, j, color);
 			}
 		}
