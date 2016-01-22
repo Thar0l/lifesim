@@ -1,84 +1,42 @@
 #include "World.h"
 
-
-
-bool World::existPoint(int x, int y)
-{
-	if ((x >= 0) && (y >= 0) && (x < size.x) && (y < size.y)) return true;
-	return false;
-}
-
 World::World()
 {}
 
-void World::init(sf::RenderWindow* window, Settings* settings, int width, int height)
+/**************************************************************************************************/
+
+void World::Init(sf::RenderWindow* window, Settings* settings, int width, int height)
 {
-	died = 0;
 	this->window = window;
 	this->settings = settings;
-	size.x = width;
-	size.y = height;
-	points.create(size.x, size.y);
-	for (int i = 0; i < size.x; i++)
-	{
-		for (int j = 0; j < size.y; j++)
-		{
-			sf::Color color(settings->start_color_r, settings->start_color_g, settings->start_color_b);
-			points.setPixel(i, j, color);
-		}
-	}
+	this->size.x = width;
+	this->size.y = height;
+	this->points.create(size.x, size.y);
+
+	this->Fill(sf::Color(settings->start_color_r, settings->start_color_g, settings->start_color_b));
+
 	texture.loadFromImage(points);
 	this->shader.loadFromFile("blur.vert", "blur.frag");
 	this->shader.setParameter("texture", sf::Shader::CurrentTexture);
 	this->shader.setParameter("width", width);
 	this->shader.setParameter("height", height);
 
-	for (int i = 0; i < settings->start_units; i++)
-	{
-		sf::Color resist;
-		if (i % 3 == 0) 
-		{
-			resist.r = 250;
-			resist.g = 0;
-			resist.b = 0;
-		}
-		else if (i % 3 == 1)
-		{
-			resist.r = 0;
-			resist.g = 250;
-			resist.b = 0;
-		}
-		else if (i % 3 == 2)
-		{
-			resist.r = 0;
-			resist.g = 0;
-			resist.b = 250;
-		}/*
-		else if (i % 6 == 3)
-		{
-			resist.r = 240;
-			resist.g = 240;
-			resist.b = 0;
-		}
-		else if (i % 6 == 4)
-		{
-			resist.r = 240;
-			resist.g = 0;
-			resist.b = 240;
-		}
-		else
-		{
-			resist.r = 0;
-			resist.g = 240;
-			resist.b = 240;
-		}*/
-
-		units.push_back(Unit(window, this, settings, rand() % (int)(size.x), rand() % (int)(size.y), resist));
-	}
+	this->AddUnits(settings->start_units);
+	
+	this->temp = 0;
 }
 
+/**************************************************************************************************/
 
-void World::draw()
+bool World::PointExist(int x, int y)
+{
+	return ((x >= 0) && (y >= 0) && (x < size.x) && (y < size.y))?true:false;
+}
+
+/**************************************************************************************************/
+
+
+void World::Draw()
 {
 	sf::RenderStates RenderStates = sf::RenderStates::Default;
 	texture.update(points);
@@ -87,48 +45,98 @@ void World::draw()
 	RenderStates.texture = &texture;
 	RenderStates.shader = &shader;
 	window->draw(sprite, RenderStates);
-
-
+	//TODO Crete blur() function
+	/* BLUR
+	temp++;
+	if (temp % 100 == 0)
+	{
+		sf::RenderTexture rendertexture;
+		rendertexture.create(size.x, size.y);
+		rendertexture.setSmooth(false);
+		rendertexture.draw(sprite, &shader);
+		points = rendertexture.getTexture().copyToImage();
+		texture.update(points);
+		sprite.setTexture(texture);
+		rendertexture.create(size.x, size.y);
+		rendertexture.setSmooth(false);
+		rendertexture.draw(sprite, &shader);
+		points = rendertexture.getTexture().copyToImage();
+	}
+	/**/
 }
 
+/**************************************************************************************************/
 
-sf::Vector2u World::getSize()
+void World::AddUnits(int count)
+{
+	for (int i = 0; i < count; i++)
+	{
+		sf::Color resist = sf::Color::Black;
+		if (i % 6 == 0)
+		{
+			resist.r = 250;
+		}
+		else if (i % 6 == 1)
+		{
+			resist.g = 250;
+		}
+		else if (i % 6 == 2)
+		{
+			resist.b = 250;
+		}
+		else if (i % 6 == 3)
+		{
+			resist.r = 220;
+			resist.g = 220;
+		}
+		else if (i % 6 == 4)
+		{
+			resist.g = 220;
+			resist.b = 220;
+		}
+		else if (i % 6 == 5)
+		{
+			resist.b = 220;
+			resist.r = 220;
+		}
+		units.push_back(Unit(window, this, settings, rand() % (int)(size.x), rand() % (int)(size.y), resist));
+
+	}
+}
+
+/**************************************************************************************************/
+
+sf::Vector2u World::GetSize()
 {
 	return sf::Vector2u(size.x, size.y);
 }
 
+/**************************************************************************************************/
 
-int World::getUnitCount()
+int World::GetUnitCount()
 {
 	return units.size();
 }
 
+/**************************************************************************************************/
 
-World::~World()
+sf::Color World::GetPoint(int x, int y)
 {
+	return (PointExist(x, y))?(points.getPixel(x, y)):(sf::Color::Black);
 }
 
+/**************************************************************************************************/
 
-sf::Color World::getPoint(int x, int y)
+void World::SetPoint(int x, int y, sf::Color color)
 {
-	if (existPoint(x, y))
-	{
-		return points.getPixel(x, y);
-	}
-	return sf::Color::Black;
-}
-
-
-void World::setPoint(int x, int y, sf::Color color)
-{
-	if (existPoint(x, y))
+	if (PointExist(x, y))
 	{
 		points.setPixel(x, y, color);
 	}
 }
 
 
-void World::addCircle(int x, int y, int r, sf::Color color)
+void World::AddCircle(int x, int y, int r, sf::Color color)
 {
 	sf::Color point;
 	for (int i = -r; i <= r; i++)
@@ -165,17 +173,73 @@ void World::addCircle(int x, int y, int r, sf::Color color)
 	}
 }
 
+void World::Fill(sf::Color color)
+{
+    for (int i = 0; i < size.x; i++)
+	{
+		for (int j = 0; j < size.y; j++)
+		{
+			points.setPixel(i, j, color);
+		}
+	}
+}
+
+void World::FillCircles()
+{
+	for (int i = 0; i < (rand() % 60 + 12); i++)
+	{
+		int t = i;
+		int f = 255;
+		int r = 0;
+		int g = 0;
+		int b = 0;
+		if (t % 3 == 0) r = f;
+		if (t % 3 == 1) g = f;
+		if (t % 3 == 2) b = f;
+		AddCircle(rand() % size.x, rand() % size.y, rand() % 200 + 80, sf::Color(r, g, b));
+	}
+	for (int i = 0; i < (rand() % 120 + 24); i++)
+	{
+		int t = rand() % 3;
+		int f = 255;
+		int r = 0;
+		int g = 0;
+		int b = 0;
+		if (t % 3 == 0) r = f;
+		if (t % 3 == 1) g = f;
+		if (t % 3 == 2) b = f;
+		AddCircle(rand() % size.x, rand() % size.y, rand() % 100 + 120, sf::Color(r, g, b));
+	}
+	for (int i = 0; i < (rand() % 30 + 12); i++)
+	{
+		int t = rand() % 3;
+		int f = rand() % 160;
+		int r = 0;
+		int g = 0;
+		int b = 0;
+		if (t % 3 == 0) r = f;
+		if (t % 3 == 1) g = f;
+		if (t % 3 == 2) b = f;
+		AddCircle(rand() % size.x, rand() % size.y, rand() % 320 + 220, sf::Color(r, g, b));
+	}
+}
+
+/**************************************************************************************************/
+
+bool World::HasUnits()
+{
+	return (units.size() > 0)?true:false;
+}
+
+/**************************************************************************************************/
 
 void World::Clear()
 {
-	{
-		for (int i = 0; i < size.x; i++)
-		{
-			for (int j = 0; j < size.y; j++)
-			{
-				sf::Color color = sf::Color(0, 0, 0);
-				points.setPixel(i, j, color);
-			}
-		}
-	}
+	this->Fill(sf::Color::Black);
+}
+
+/**************************************************************************************************/
+
+World::~World()
+{
 }

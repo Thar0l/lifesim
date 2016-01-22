@@ -3,6 +3,7 @@
 #include "libs.h"
 #include "Settings.h"
 #include "World.h"
+#include <fstream>
 
 enum State
 {
@@ -33,10 +34,23 @@ private:
 	Settings settings;
 	World world;
 	sf::Clock clock;
+	std::ofstream logfile;
+
+	//TODO delete int variable and unite it to struct
+	int frames;
+	int fps;
+	int dead;
+
+	void Loop();
+	void CheckEvents();
+	void Draw();
+	void SetTitle();
 
 public:
-	Simulator(sf::RenderWindow* window);
-	void run();
+	Simulator();
+	void Init(sf::RenderWindow* window);
+	void Run();
+
 	~Simulator();
 };
 

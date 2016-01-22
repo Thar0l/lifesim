@@ -26,7 +26,7 @@ void Settings::init(std::string filename)
 	start_health = reader.GetInteger("Unit", "start_health", 100);
 	speed = reader.GetInteger("Unit", "speed", 1);
 	max_size = reader.GetInteger("Unit", "max_size", 3);
-	eat_food = reader.GetInteger("Unit", "eat_food", 10);
+	eat_food = reader.GetInteger("Unit", "eat_food", 4);
 	health_heal = reader.GetInteger("Unit", "health_heal", 50);
 	energy_get = reader.GetInteger("Unit", "energy_get", 5);
 	health_get = reader.GetInteger("Unit", "health_get", 5);

@@ -2,7 +2,7 @@
 
 #include "Unit.h"
 
-sf::Color neg(sf::Color color)
+sf::Color inv(sf::Color color)
 {
 	sf::Color result;
 	result.r = 255 - color.r;
@@ -11,76 +11,56 @@ sf::Color neg(sf::Color color)
 	return result;
 }
 
+/**************************************************************************************************/
+
+int min(int a, int b)
+{
+	return (a <= b) ? a : b;
+}
+
+/**************************************************************************************************/
+
+int max(int a, int b)
+{
+	return (a >= b) ? a : b;
+}
+
+/**************************************************************************************************/
 
 Unit::Unit(sf::RenderWindow* window, World* world, Settings* settings, int x, int y, sf::Color res)
 {
 	this->world = world; 
 	this->window = window;
 	this->settings = settings;
-	food = settings->start_food;
+	food  = settings->start_food;
+	//TODO replace food and health with one param food
 	health = settings->start_health;
 	energy = settings->start_energy;
 	resist = res;
-	visiblity = 22;
 	speed = settings->speed;
 	size = settings->start_size;
+
 	alive = true;
+	age = 0;
+
 	image.setPosition(x,y);
 	image.setFillColor(resist);
 	image.setOrigin(size, size);
-	image.setRadius(2 * size);
+	image.setRadius(1 * size);
 	image.setOutlineThickness(1);
-	image.setOutlineColor(neg(resist));
+	image.setOutlineColor(inv(resist));
 }
 
+/**************************************************************************************************/
 
-void Unit::draw()
+void Unit::Draw()
 {
 	window->draw(image);
 }
 
+/**************************************************************************************************/
 
-direction Unit::searchFood(int r)
-{
-	int curfood = world->getPoint(image.getPosition().x, image.getPosition().y).b;
-	int maxfood = curfood;
-	sf::Vector2f curfoodpoint = sf::Vector2f(image.getPosition().x, image.getPosition().y);
-	sf::Vector2f maxfoodpoint = curfoodpoint;
-
-	if (curfood > 30) return null;
-
-	for (int i = -r; i < r; i++)
-	{
-		for (int j = -r; j < r; j++)
-		{
-			if (world->getPoint(image.getPosition().x+i, image.getPosition().y+j).b > maxfood)
-			{
-				maxfood = world->getPoint(image.getPosition().x+i, image.getPosition().y+j).b;
-				maxfoodpoint = sf::Vector2f(image.getPosition().x+i, image.getPosition().y+j);
-			}
-		}
-	}
-
-	if (maxfoodpoint != curfoodpoint)
-	{
-		sf::Vector2f delta = maxfoodpoint - curfoodpoint;
-		if (abs(delta.x) > abs(delta.y))
-		{
-			if (delta.y > 0) return down;
-			return up;
-		}
-		else
-		{
-			if (delta.x > 0) return right;
-			return left;
-		}
-	}
-
-	return null;
-}
-
-
-void Unit::move(direction dir)
+void Unit::Move(direction dir)
 {
 	if ((energy > size) && (dir != stay))
 	{
@@ -129,150 +109,191 @@ void Unit::move(direction dir)
 		}
 		if (position.x < 0) position.x = 0;
 		if (position.y < 0) position.y = 0;
-		if (position.x >= world->getSize().x) position.x = world->getSize().x - 1;
-		if (position.y >= world->getSize().y) position.y = world->getSize().y - 1;
+		if (position.x >= world->GetSize().x) position.x = world->GetSize().x - 1;
+		if (position.y >= world->GetSize().y) position.y = world->GetSize().y - 1;
 		image.setPosition(position);
 	}
 }
 
+/**************************************************************************************************/
 
-bool Unit::_eat()
+void Unit::Split()
 {
-	bool eaten = false;
-	return eaten;
-}
-
-
-void Unit::split()
-{
-	if ((food > settings->con_food_split) && (world->getUnitCount() < settings->max_units) && (size > 1))
+	if ((food > settings->con_food_split) && (world->GetUnitCount() < settings->max_units) && (size > 1))
 	{
-		sf::Color childsresist[2];
-		for (int i = 0; i < 2; i++)
+		//std::cout << "(" << (int)(resist.r) << ":" << (int)(resist.g) << ":" << (int)(resist.b) << ") => ";
+		int childs = pow(2, size - 1) - 1;
+		for (int i = 0; i < childs; i++)
 		{
-			int r = resist.r + rand() % 21 - 10;
-			int g = resist.g + rand() % 21 - 10;
-			int b = resist.b + rand() % 21 - 10;
+			sf::Color childsresist;
+			int r = resist.r + rand() % 11 - 5;
+			int g = resist.g + rand() % 11 - 5;
+			int b = resist.b + rand() % 11 - 5;
 			if (r > 255) r = 255;
 			if (g > 255) g = 255;
 			if (b > 255) b = 255;
 			if (r < 0) r = 0;
 			if (g < 0) g = 0;
 			if (b < 0) b = 0;
-			childsresist[i].r = r;
-			childsresist[i].g = g;
-			childsresist[i].b = b;
+			if ((r < 30) && (g < 30) && (b < 30))
+			{
+				int x = rand();
+				if (x % 3 == 0)
+				{
+					r = 250;
+				}
+				else if (x % 3 == 1)
+				{
+					g = 250;
+				}
+				else if (x % 3 == 2)
+				{
+					b = 250;
+				}
+			}
+			childsresist.r = r;
+			childsresist.g = g;
+			childsresist.b = b;
+			world->units.push_back(Unit(window, world, settings, image.getPosition().x + rand()%(4 * size + 1) - 2*size, image.getPosition().y + rand()%(4 * size + 1) - 2*size, childsresist));
+			//std::cout << "(" << r << ":" << g << ":" << b << ")";
 		}
-		world->units.push_back(Unit(window, world, settings, image.getPosition().x + rand() % (2 * size + 1) - size, image.getPosition().y + rand() % (4 * size + 1) - size, childsresist[0]));
-		world->units.push_back(Unit(window, world, settings, image.getPosition().x + rand() % (2 * size + 1) - size, image.getPosition().y + rand() % (4 * size + 1) - size, childsresist[1]));
-		food = 0;
-		alive = false;
-		size = 0;
+		//std::cout <<"|"B<< std::endl;
+		food = settings->start_food;
+		//alive = false;
+		size = 1;
 	}
-	
 }
 
+/**************************************************************************************************/
 
-void Unit::growth()
+void Unit::Growth()
 {
-	if ((food > (settings->con_food_growth) * size + 60) && (size < 2))
+	if ((food > (settings->con_food_growth) * size ) && (size < 2))
 	{
-		food -= (settings->con_food_growth) * size;
+		//food -= (settings->con_food_growth) * size;
+		//std::cout << (int)resist.r <<":" << (int)resist.g <<":" << (int)resist.b << std::endl;
 		size++;
-		image.setRadius(size*2);
+		image.setRadius(size*1);
 		image.setOrigin(size, size);
+		image.setFillColor(resist);
 	}
 }
 
+/**************************************************************************************************/
 
-void Unit::live()
+void Unit::Live()
 {
 	if (alive)
 	{
+		age++;
 		if (food <= 0)
 		{
-			world->died++;
+			//ucount.dead++;
+			//FIXME this code should work
 			alive = false;
 		}
-		growth();
-		split();
-		eat();
-		fill();
-		move(null);
+		Growth();
+		
+		int x = rand() % 1000;
+		if (x <= 1)
+			Split();
+
+		//int f = food;
+		Eat();
+		//std::cout << food - f << " : ";
+		//f = food;
+		Fill();
+		//std::cout << food - f << std::endl;
+		Move(null);
 	}
 }
 
-void Unit::eat()
+/*************************************************************************************************/
+
+void Unit::Eat()
 {
-	for (int i = -size; i <= size; i++)
+	int tmp = 1;
+	int r = size / 2;
+	for (int i = -r; i <= r; i++)
 	{
-		for (int j = -size; j <= size; j++)
+		for (int j = -r; j <= r; j++)
 		{
-			if ((i * i + j * j) <= (size)* (size))
+			if ((i * i + j * j) <= (r*r))
 			{
-				
-				sf::Color worldpoint = world->getPoint(image.getPosition().x + i, image.getPosition().y + j);
-				if ((worldpoint.r - resist.r) >= settings->eat_food)
+				sf::Color worldpoint = world->GetPoint(image.getPosition().x + i, image.getPosition().y + j);
+				if ((worldpoint.r - resist.r) >= 1)
 				{
-					if (worldpoint.r >= settings->eat_food)
-					worldpoint.r -= settings->eat_food;
-					food += settings->eat_food;
+					
+					worldpoint.r -= min(tmp, (worldpoint.r - resist.r));
+					food += min(tmp, (worldpoint.r - resist.r));
 				}
-				if ((worldpoint.g- resist.g) >= settings->eat_food)
+				if ((worldpoint.g - resist.g) >= 1)
 				{
-					if (worldpoint.g >= settings->eat_food)
-					worldpoint.g -= settings->eat_food;
-					food += settings->eat_food;
+					worldpoint.g -= min(tmp, (worldpoint.g - resist.g));
+					food += min(tmp, (worldpoint.g - resist.g));
 				}
-				if ((worldpoint.b - resist.b) >= settings->eat_food)
+				if ((worldpoint.b - resist.b) >= 1)
 				{
-					if (worldpoint.b >= settings->eat_food)
-					worldpoint.b -= settings->eat_food;
-					food += settings->eat_food;
+					worldpoint.b -= min(tmp, (worldpoint.b - resist.b));
+					food += min(tmp, (worldpoint.b - resist.b));
 				}
-				world->setPoint(image.getPosition().x + i, image.getPosition().y + j, worldpoint);
+				world->SetPoint(image.getPosition().x + i, image.getPosition().y + j, worldpoint);
 			}
 		}
 	}
 }
 
-void Unit::fill()
+/**************************************************************************************************/
+
+void Unit::Fill()
 {
-	for (int i = -size; i <= size; i++)
+	int tmp = 12;
+	int r = size / 2;
+	for (int i = -r; i <= r; i++)
 	{
-		for (int j = -size; j <= size; j++)
+		for (int j = -r; j <= r; j++)
 		{
-			if (((i * i + j * j) <= (size)* (size)))
+			if ((i * i + j * j) <= (r*r))
 			{
-				sf::Color worldpoint = world->getPoint(image.getPosition().x + i, image.getPosition().y + j);
+				sf::Color worldpoint = world->GetPoint(image.getPosition().x + i, image.getPosition().y + j);
 				sf::Color old = worldpoint;
-				if ((resist.r - worldpoint.r) > settings->con_food_spend)
+				if ((resist.r - worldpoint.r) >= 1)
 				{
-					worldpoint.r += settings->con_food_spend;
-					food -= settings->con_food_spend;
+					food -= min(tmp, (resist.r - worldpoint.r));
+					worldpoint.r += min(tmp, (resist.r - worldpoint.r));
 				}
-				if ((resist.g - worldpoint.g) > settings->con_food_spend)
+				if ((resist.g - worldpoint.g) >= 1)
 				{
-					worldpoint.g += settings->con_food_spend;
-					food -= settings->con_food_spend;
+					food -= min(tmp, (resist.g - worldpoint.g));
+					worldpoint.g += min(tmp, (resist.g - worldpoint.g));
 				}
-				if ((resist.b - worldpoint.b) > settings->con_food_spend)
+				if ((resist.b - worldpoint.b) >= 1)
 				{
-					worldpoint.b += settings->con_food_spend;
-					food -= settings->con_food_spend;
+					food -= (tmp, (resist.b - worldpoint.b));
+					worldpoint.b += min(tmp, (resist.b - worldpoint.b));
 				}
-				world->setPoint(image.getPosition().x + i, image.getPosition().y + j, worldpoint);
+				world->SetPoint(image.getPosition().x + i, image.getPosition().y + j, worldpoint);
 			}
 		}
 	}
 }
+
+/**************************************************************************************************/
+
+int Unit::GetAge()
+{
+	return age;
+}
+
+/**************************************************************************************************/
+
+bool Unit::Alive()
+{
+	return alive;
+}
+
+/**************************************************************************************************/
 
 Unit::~Unit()
 {
-}
-
-
-bool Unit::isAlive()
-{
-	return alive;
 }

@@ -6,19 +6,12 @@
 #include "Simulator.h"
 #include <fstream>
 
-#define empty_mode 0
-#define circle_mode 1
-#define unit_mode 2
-
-void srand()
-{
-	srand(time(NULL));
-}
-
 int main()
 {
+	srand(time(NULL));
 	sf::RenderWindow window;
-	Simulator sim(&window);
-	sim.run();
+	Simulator sim;
+	sim.Init(&window);
+	sim.Run();
 	return 0;
 }

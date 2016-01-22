@@ -9,32 +9,33 @@ private:
 	sf::RenderWindow* window;
 	Settings* settings;
 	World* world;
+
 	sf::CircleShape image;
-	bool alive;
 	sf::Color resist;
+	bool alive;
+	
 	int food;
 	int health;
 	int energy;
-	int visiblity;
 	int speed;
 	int size;
+	int age;
 
-	void move(direction dir);
-	bool _eat();
-	void split();
-	void growth();
+	void Move(direction dir);
+	void Split();
+	void Growth();
 
-	void eat();
-	void fill();
+	void Eat();
+	void Fill();
 	
 
 
 
 public:
 	Unit(sf::RenderWindow* window, World* world, Settings* settings, int x, int y, sf::Color res);
-	void draw();
-	direction searchFood(int r);
+	void Draw();
+	int GetAge();
+	void Live();
+	bool Alive();
 	~Unit();
-	void live();
-	bool isAlive();
 };
