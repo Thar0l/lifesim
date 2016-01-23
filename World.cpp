@@ -74,30 +74,30 @@ void World::AddUnits(int count)
 		sf::Color resist = sf::Color::Black;
 		if (i % 6 == 0)
 		{
-			resist.r = 250;
+			resist.r = 255;
 		}
 		else if (i % 6 == 1)
 		{
-			resist.g = 250;
+			resist.g = 255;
 		}
 		else if (i % 6 == 2)
 		{
-			resist.b = 250;
+			resist.b = 255;
 		}
 		else if (i % 6 == 3)
 		{
-			resist.r = 220;
-			resist.g = 220;
+			resist.r = 255;
+			resist.g = 255;
 		}
 		else if (i % 6 == 4)
 		{
-			resist.g = 220;
-			resist.b = 220;
+			resist.g = 255;
+			resist.b = 255;
 		}
 		else if (i % 6 == 5)
 		{
-			resist.b = 220;
-			resist.r = 220;
+			resist.b = 255;
+			resist.r = 255;
 		}
 		units.push_back(Unit(window, this, settings, rand() % (int)(size.x), rand() % (int)(size.y), resist));
 
@@ -186,7 +186,7 @@ void World::Fill(sf::Color color)
 
 void World::FillCircles()
 {
-	for (int i = 0; i < (rand() % 60 + 12); i++)
+	for (int i = 0; i < (rand() % (10 * settings->world_lighthess) + settings->world_lighthess); i++)
 	{
 		int t = i;
 		int f = 255;
@@ -198,7 +198,7 @@ void World::FillCircles()
 		if (t % 3 == 2) b = f;
 		AddCircle(rand() % size.x, rand() % size.y, rand() % 200 + 80, sf::Color(r, g, b));
 	}
-	for (int i = 0; i < (rand() % 120 + 24); i++)
+	for (int i = 0; i < (rand() % (20 *settings->world_lighthess) + 2 * settings->world_lighthess); i++)
 	{
 		int t = rand() % 3;
 		int f = 255;
@@ -210,7 +210,7 @@ void World::FillCircles()
 		if (t % 3 == 2) b = f;
 		AddCircle(rand() % size.x, rand() % size.y, rand() % 100 + 120, sf::Color(r, g, b));
 	}
-	for (int i = 0; i < (rand() % 30 + 12); i++)
+	for (int i = 0; i < (rand() % (8 * settings->world_lighthess) + settings->world_lighthess / 2); i++)
 	{
 		int t = rand() % 3;
 		int f = rand() % 160;

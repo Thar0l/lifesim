@@ -1,9 +1,16 @@
 #include "Simulator.h"
 #include "libs.h"
 
-void srand()
+std::string ColorToStr(sf::Color color)
 {
-	//
+	std::string result = "N/A";
+	if (color == sf::Color(255, 0, 0)) result = "Red";
+	if (color == sf::Color(0, 255, 0)) result = "Green";
+	if (color == sf::Color(0, 0, 255)) result = "Blue";
+	if (color == sf::Color(255, 255, 0)) result = "Yellow";
+	if (color == sf::Color(0, 255, 255)) result = "Cyan";
+	if (color == sf::Color(255, 0, 255)) result = "Magenta";
+	return result;
 }
 
 /**************************************************************************************************/ 
@@ -28,26 +35,54 @@ void Simulator::Init(sf::RenderWindow* window)
 
 	this->drawmode.units = true;
 	this->drawmode.world = true;
+	this->drawmode.menu  = false;
 
-	this->time.old = sf::Time::Zero;
-	this->time.current = sf::Time::Zero;
+	this->simtime.old = sf::Time::Zero;
+	this->simtime.current = sf::Time::Zero;
 
 	this->world.Init(window, &settings, settings.size_x, settings.size_y);
 	this->world.FillCircles();
-
-	this->logfile.open("log.txt");
 
 	this->frames = 0;
 	this->fps = 0;
 
 	this->dead = 0;
+	this->index = 0;
+	this->eldest = MAXINT;
+	this->youngest = 0;
+
+	this->hsvmousecolor.h = 120;
+	this->hsvmousecolor.s = 255;
+	this->hsvmousecolor.v = 255;
+
+	this->mousecolor = HsvToRgb(hsvmousecolor);
+	this->unitcolors[0] = sf::Color(255, 0, 0);
+	this->unitcolors[1] = sf::Color(0, 255, 0);
+	this->unitcolors[2] = sf::Color(0, 0, 255);
+	this->unitcolors[3] = sf::Color(255, 255, 0);
+	this->unitcolors[4] = sf::Color(0, 255, 255);
+	this->unitcolors[5] = sf::Color(255, 0, 255);
+	this->unitcolorindex = 0;
+
+	this->menu.Init(window);
+	this->menu.SetPosition(sf::Vector2f(2, 3));
+	this->menu.SetMouseColor(mousecolor);
+
+	time_t t = time(NULL);
+	tm* now = new tm;
+	localtime_s(now, &t);
+	std::stringstream ss;
+	ss << (now->tm_year + 1900) << '-' << (now->tm_mon + 1) << '-' << now->tm_mday << '-' << now->tm_hour << '-' << now->tm_min << '-' << now->tm_sec;
+	this->timestamp = ss.str();
+	std::cout << "Simulation id: " << timestamp << std::endl;
+
+	this->logfile.open("logs\\" + timestamp + "_log.txt");
 }
 
 /**************************************************************************************************/
 
 void Simulator::Run()
 {
-	srand();
 	clock.restart();
 	while (window->isOpen())
 	{
@@ -66,27 +101,53 @@ void Simulator::Loop()
 	{
 		if (world.HasUnits())
 		{
+			this->eldest = MAXINT;
+			this->youngest = 0;
 			std::list<Unit>::iterator unit = world.units.begin();
 			while (unit != world.units.end())
 			{
 				unit->Live();
+				if (unit->GetGeneration() < eldest)
+				{
+					eldest = unit->GetGeneration();
+				}
+				if (unit->GetGeneration() > youngest)
+				{
+					youngest = unit->GetGeneration();
+				}
 				unit++;
 			}
 		}
 		else
 		{
 			state = st_stop;
+			if (settings.screenshot_delay != 0)
+			{
+				sf::Image screenshot = window->capture();
+				screenshot.saveToFile("screenshots\\" + timestamp + "__" + std::to_string(index) + ".bmp");
+				index++;
+			}
 		}
-		time.current = clock.getElapsedTime();
+		simtime.current = clock.getElapsedTime();
         //FIXME Time continue counting in pause mode
 	}
 
-	if (((int)(time.current.asSeconds())) > (int)(time.old.asSeconds()))
+	if (((int)(simtime.current.asSeconds())) > (int)(simtime.old.asSeconds()))
 	{
-		time.old = time.current;
+		simtime.old = simtime.current;
 		fps = frames;
 		frames = 0;
-		logfile << (int)(time.current.asSeconds()) << "; " << world.GetUnitCount() << "; " << dead << std::endl;
+		logfile << (int)(simtime.current.asSeconds()) << "; " << world.GetUnitCount() << "; " << dead << std::endl;
+	}
+
+	if (settings.screenshot_delay != 0)
+	{
+		if ((((int)(simtime.current.asSeconds())) % settings.screenshot_delay == 4) && (((int)(simtime.current.asSeconds())) / settings.screenshot_delay == index))
+		{
+			sf::Image screenshot = window->capture();
+			screenshot.saveToFile("screenshots\\" + timestamp + "__" + std::to_string(index) + ".bmp");
+			index++;
+		}
 	}
 
 	this->SetTitle();
@@ -114,6 +175,15 @@ void Simulator::CheckEvents()
 				else if (state == st_pause)
 					state = st_run;
 			}
+			if (event.key.code == sf::Keyboard::S)
+			{
+				if (state == st_stop)
+					state = st_run;
+			}
+			if (event.key.code == sf::Keyboard::M)
+			{
+				drawmode.menu = !drawmode.menu;
+			}
 			if (event.key.code == sf::Keyboard::C)
 			{
 				world.Clear();
@@ -121,6 +191,34 @@ void Simulator::CheckEvents()
 			if (event.key.code == sf::Keyboard::Escape)
 			{
 				window->close();
+			}
+		}
+		if (event.type == sf::Event::MouseButtonPressed)
+		{
+			if (event.mouseButton.button == sf::Mouse::Button::Left)
+			{
+				world.units.push_back(Unit(window, &world, &settings, sf::Mouse::getPosition(*window).x, sf::Mouse::getPosition(*window).y, mousecolor, 0));
+			}
+		}
+		if (event.type == sf::Event::MouseWheelMoved)
+		{
+			if ((sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)))
+			{
+				menu.ChangeMouseSize(event.mouseWheel.delta * 2);
+			}
+			else
+			{
+				hsvmousecolor.h += event.mouseWheel.delta * 5;
+				if (hsvmousecolor.h < 0)
+				{
+					hsvmousecolor.h += 360;
+				}
+				if (hsvmousecolor.h > 360)
+				{
+					hsvmousecolor.h = hsvmousecolor.h % 360;
+				}
+				mousecolor = HsvToRgb(hsvmousecolor);
+				menu.SetMouseColor(mousecolor);
 			}
 		}
 		if (event.type == sf::Event::Closed)
@@ -136,7 +234,6 @@ void Simulator::Draw()
 {
 	window->clear();
 	world.Draw();
-
 	if (world.HasUnits())
 	{
 		std::list<Unit>::iterator unit = world.units.begin();
@@ -157,6 +254,10 @@ void Simulator::Draw()
 			}
 		}
 	}
+	if (drawmode.menu)
+	{
+		menu.Draw();
+	}
 	window->display();
 }
 
@@ -165,8 +266,7 @@ void Simulator::Draw()
 void Simulator::SetTitle()
 {
 	std::stringstream title;
-	//TODO add dead units count and fix age[0] to maxage
-	title << "Units: " << world.GetUnitCount() << "; Died: " << dead << "; Time: " << (int)(time.current.asSeconds()) << "s; FPS: " << fps;
+	title << "Units: " << world.GetUnitCount() << "; Died: " << dead << "; Generation: " << eldest << "-" << youngest << "; Time: " << (int)(simtime.current.asSeconds()) << "s; FPS: " << fps << "; MouseColor: " << ColorToStr(mousecolor);
 	window->setTitle(sf::String(title.str()));
 }
 

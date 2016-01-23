@@ -34,6 +34,8 @@ public:
 	void Fill(sf::Color color);
 	void FillCircles();
 	void Draw();
+	//TODO Add blur() function
+	//void Blur();
 	bool HasUnits();
 	void Clear();
 	~World();

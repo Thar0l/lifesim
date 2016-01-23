@@ -13,6 +13,115 @@ sf::Color inv(sf::Color color)
 
 /**************************************************************************************************/
 
+HsvColor RgbToHsv(sf::Color rgb)
+{
+	HsvColor hsv;
+	float min, max, delta;
+	float r = rgb.r / 255.0;
+	float g = rgb.g / 255.0;
+	float b = rgb.b / 255.0;
+	float h = 0, s, v;
+
+	min = std::min(r, g);
+	min = std::min(min, b);
+
+	max = std::max(r, g);
+	max = std::max(max, b);
+
+	v = max;				// v
+	delta = max - min;
+	if (max != 0)
+		s = delta / max;		// s
+	else {
+		// r = g = b = 0		// s = 0, v is undefined
+		s = 0;
+		h = 0;
+		hsv.h = h;
+		hsv.s = 255 * s;
+		hsv.v = 255 * v;
+		return hsv;
+	}
+	if (r == max)
+		h = (g - b) / delta;		// between yellow & magenta
+	else if (g == max)
+		h = 2 + (b - r) / delta;	// between cyan & yellow
+	else
+		h = 4 + (r - g) / delta;	// between magenta & cyan
+	h *= 60;				// degrees
+	if (h < 0)
+		h += 360;
+	if (delta == 0.0) h = 0;
+	hsv.h = h;
+	hsv.s = 255 * s;
+	hsv.v = 255 * v;
+	return hsv;
+}
+
+/**************************************************************************************************/
+
+sf::Color HsvToRgb(HsvColor hsv)
+{
+	sf::Color rgb;
+	int i;
+	float f, p, q, t;
+	float h = hsv.h;
+	float s = hsv.s / 255.0;
+	float v = hsv.v / 255.0;
+	float r, g, b;
+	if (s == 0) {
+		// achromatic (grey)
+		r = g = b = v;
+		rgb.r = 255 * r;
+		rgb.g = 255 * g;
+		rgb.b = 255 * b;
+		return rgb;
+	}
+	h /= 60;			// sector 0 to 5
+	i = (int)floor(h);
+	f = h - i;			// factorial part of h
+	p = v * (1 - s);
+	q = v * (1 - s * f);
+	t = v * (1 - s * (1 - f));
+	switch (i) {
+	case 0:
+		r = v;
+		g = t;
+		b = p;
+		break;
+	case 1:
+		r = q;
+		g = v;
+		b = p;
+		break;
+	case 2:
+		r = p;
+		g = v;
+		b = t;
+		break;
+	case 3:
+		r = p;
+		g = q;
+		b = v;
+		break;
+	case 4:
+		r = t;
+		g = p;
+		b = v;
+		break;
+	default:		// case 5:
+		r = v;
+		g = p;
+		b = q;
+		break;
+	}
+	rgb.r = 255 * r;
+	rgb.g = 255 * g;
+	rgb.b = 255 * b;
+	return rgb;
+}
+
+/**************************************************************************************************/
+
 int min(int a, int b)
 {
 	return (a <= b) ? a : b;
@@ -27,28 +136,25 @@ int max(int a, int b)
 
 /**************************************************************************************************/
 
-Unit::Unit(sf::RenderWindow* window, World* world, Settings* settings, int x, int y, sf::Color res)
+Unit::Unit(sf::RenderWindow* window, World* world, Settings* settings, int x, int y, sf::Color res, int generation)
 {
 	this->world = world; 
 	this->window = window;
 	this->settings = settings;
-	food  = settings->start_food;
-	//TODO replace food and health with one param food
-	health = settings->start_health;
-	energy = settings->start_energy;
-	resist = res;
-	speed = settings->speed;
-	size = settings->start_size;
+	this->food  = settings->food_start;
+	this->resist = res;
+	this->speed = settings->speed;
+	this->size = settings->size_start;
+	this->generation = generation;
+	this->alive = true;
+	this->age = 0;
 
-	alive = true;
-	age = 0;
-
-	image.setPosition(x,y);
-	image.setFillColor(resist);
-	image.setOrigin(size, size);
-	image.setRadius(1 * size);
-	image.setOutlineThickness(1);
-	image.setOutlineColor(inv(resist));
+	this->image.setPosition(x,y);
+	this->image.setFillColor(resist);
+	this->image.setOrigin(size, size);
+	this->image.setRadius(size);
+	this->image.setOutlineThickness(1);
+	this->image.setOutlineColor(inv(resist));
 }
 
 /**************************************************************************************************/
@@ -62,7 +168,7 @@ void Unit::Draw()
 
 void Unit::Move(direction dir)
 {
-	if ((energy > size) && (dir != stay))
+	if (dir != stay)
 	{
 		sf::Vector2f position = image.getPosition();
 		int dx;
@@ -119,47 +225,42 @@ void Unit::Move(direction dir)
 
 void Unit::Split()
 {
-	if ((food > settings->con_food_split) && (world->GetUnitCount() < settings->max_units) && (size > 1))
+	if ((food > settings->food_split) && (world->GetUnitCount() < settings->max_units) && (size > 1))
 	{
-		//std::cout << "(" << (int)(resist.r) << ":" << (int)(resist.g) << ":" << (int)(resist.b) << ") => ";
 		int childs = pow(2, size - 1) - 1;
 		for (int i = 0; i < childs; i++)
 		{
 			sf::Color childsresist;
-			int r = resist.r + rand() % 11 - 5;
-			int g = resist.g + rand() % 11 - 5;
-			int b = resist.b + rand() % 11 - 5;
-			if (r > 255) r = 255;
-			if (g > 255) g = 255;
-			if (b > 255) b = 255;
-			if (r < 0) r = 0;
-			if (g < 0) g = 0;
-			if (b < 0) b = 0;
-			if ((r < 30) && (g < 30) && (b < 30))
+			HsvColor hsv = RgbToHsv(resist);
+			int diff = rand() % (2*settings->mutation_diff + 1) - settings->mutation_diff;
+			hsv.h += diff;
+			if (hsv.h < 0)
 			{
-				int x = rand();
-				if (x % 3 == 0)
-				{
-					r = 250;
-				}
-				else if (x % 3 == 1)
-				{
-					g = 250;
-				}
-				else if (x % 3 == 2)
-				{
-					b = 250;
-				}
+				hsv.h += 360;
 			}
-			childsresist.r = r;
-			childsresist.g = g;
-			childsresist.b = b;
-			world->units.push_back(Unit(window, world, settings, image.getPosition().x + rand()%(4 * size + 1) - 2*size, image.getPosition().y + rand()%(4 * size + 1) - 2*size, childsresist));
-			//std::cout << "(" << r << ":" << g << ":" << b << ")";
+			if (hsv.h > 360)
+			{
+				hsv.h = hsv.h % 360;
+			}
+			childsresist = HsvToRgb(hsv);
+			world->units.push_back(Unit(window, world, settings, image.getPosition().x + rand()%(4 * size + 1) - 2*size, image.getPosition().y + rand()%(4 * size + 1) - 2*size, childsresist, generation + 1));
 		}
-		//std::cout <<"|"B<< std::endl;
-		food = settings->start_food;
-		//alive = false;
+		food = settings->food_start;
+		HsvColor hsv = RgbToHsv(resist);
+		int diff = rand() % 21 - 10;
+		hsv.h += diff;
+		if (hsv.h < 0)
+		{
+			hsv.h += 360;
+		}
+		if (hsv.h > 360)
+		{
+			hsv.h = hsv.h % 360;
+		}
+		resist = HsvToRgb(hsv);
+		image.setFillColor(resist);
+		image.setOutlineColor(inv(resist));
+		generation++;
 		size = 1;
 	}
 }
@@ -168,14 +269,13 @@ void Unit::Split()
 
 void Unit::Growth()
 {
-	if ((food > (settings->con_food_growth) * size ) && (size < 2))
+	if ((food > (settings->food_growth) * size ) && (size < settings->max_size))
 	{
-		//food -= (settings->con_food_growth) * size;
-		//std::cout << (int)resist.r <<":" << (int)resist.g <<":" << (int)resist.b << std::endl;
 		size++;
-		image.setRadius(size*1);
+		image.setRadius(size);
 		image.setOrigin(size, size);
 		image.setFillColor(resist);
+		this->image.setOutlineColor(inv(resist));
 	}
 }
 
@@ -188,8 +288,6 @@ void Unit::Live()
 		age++;
 		if (food <= 0)
 		{
-			//ucount.dead++;
-			//FIXME this code should work
 			alive = false;
 		}
 		Growth();
@@ -197,13 +295,8 @@ void Unit::Live()
 		int x = rand() % 1000;
 		if (x <= 1)
 			Split();
-
-		//int f = food;
 		Eat();
-		//std::cout << food - f << " : ";
-		//f = food;
 		Fill();
-		//std::cout << food - f << std::endl;
 		Move(null);
 	}
 }
@@ -212,7 +305,7 @@ void Unit::Live()
 
 void Unit::Eat()
 {
-	int tmp = 1;
+	int eat = round(settings->food_eat * (resist.r + resist.g + resist.b) / 255.0);
 	int r = size / 2;
 	for (int i = -r; i <= r; i++)
 	{
@@ -224,18 +317,18 @@ void Unit::Eat()
 				if ((worldpoint.r - resist.r) >= 1)
 				{
 					
-					worldpoint.r -= min(tmp, (worldpoint.r - resist.r));
-					food += min(tmp, (worldpoint.r - resist.r));
+					worldpoint.r -= min(eat, (worldpoint.r - resist.r));
+					food += min(eat, (worldpoint.r - resist.r));
 				}
 				if ((worldpoint.g - resist.g) >= 1)
 				{
-					worldpoint.g -= min(tmp, (worldpoint.g - resist.g));
-					food += min(tmp, (worldpoint.g - resist.g));
+					worldpoint.g -= min(eat, (worldpoint.g - resist.g));
+					food += min(eat, (worldpoint.g - resist.g));
 				}
 				if ((worldpoint.b - resist.b) >= 1)
 				{
-					worldpoint.b -= min(tmp, (worldpoint.b - resist.b));
-					food += min(tmp, (worldpoint.b - resist.b));
+					worldpoint.b -= min(eat, (worldpoint.b - resist.b));
+					food += min(eat, (worldpoint.b - resist.b));
 				}
 				world->SetPoint(image.getPosition().x + i, image.getPosition().y + j, worldpoint);
 			}
@@ -247,7 +340,6 @@ void Unit::Eat()
 
 void Unit::Fill()
 {
-	int tmp = 12;
 	int r = size / 2;
 	for (int i = -r; i <= r; i++)
 	{
@@ -259,18 +351,18 @@ void Unit::Fill()
 				sf::Color old = worldpoint;
 				if ((resist.r - worldpoint.r) >= 1)
 				{
-					food -= min(tmp, (resist.r - worldpoint.r));
-					worldpoint.r += min(tmp, (resist.r - worldpoint.r));
+					food -= min(settings->food_fill, (resist.r - worldpoint.r));
+					worldpoint.r += min(settings->food_fill, (resist.r - worldpoint.r));
 				}
 				if ((resist.g - worldpoint.g) >= 1)
 				{
-					food -= min(tmp, (resist.g - worldpoint.g));
-					worldpoint.g += min(tmp, (resist.g - worldpoint.g));
+					food -= min(settings->food_fill, (resist.g - worldpoint.g));
+					worldpoint.g += min(settings->food_fill, (resist.g - worldpoint.g));
 				}
 				if ((resist.b - worldpoint.b) >= 1)
 				{
-					food -= (tmp, (resist.b - worldpoint.b));
-					worldpoint.b += min(tmp, (resist.b - worldpoint.b));
+					food -= min(settings->food_fill, (resist.b - worldpoint.b));
+					worldpoint.b += min(settings->food_fill, (resist.b - worldpoint.b));
 				}
 				world->SetPoint(image.getPosition().x + i, image.getPosition().y + j, worldpoint);
 			}
@@ -283,6 +375,13 @@ void Unit::Fill()
 int Unit::GetAge()
 {
 	return age;
+}
+
+/**************************************************************************************************/
+
+int Unit::GetGeneration()
+{
+	return this->generation;
 }
 
 /**************************************************************************************************/

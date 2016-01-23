@@ -15,3 +15,9 @@ int main()
 	sim.Run();
 	return 0;
 }
+
+/*TODO list*/
+/***********
+Predators
+Menu
+************/
