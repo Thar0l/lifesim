@@ -197,7 +197,13 @@ void Simulator::CheckEvents()
 		{
 			if (event.mouseButton.button == sf::Mouse::Button::Left)
 			{
-				world.units.push_back(Unit(window, &world, &settings, sf::Mouse::getPosition(*window).x, sf::Mouse::getPosition(*window).y, mousecolor, 0));
+				world.units.push_back(Unit(window, &world, &settings, settings.size_start, sf::Mouse::getPosition(*window).x, sf::Mouse::getPosition(*window).y, mousecolor, 0));
+			}
+			if (event.mouseButton.button == sf::Mouse::Button::Right)
+			{
+				Unit unit(window, &world, &settings, settings.size_start, sf::Mouse::getPosition(*window).x, sf::Mouse::getPosition(*window).y, mousecolor, 0);
+				unit.MakePredator();
+				world.units.push_back(unit);
 			}
 		}
 		if (event.type == sf::Event::MouseWheelMoved)

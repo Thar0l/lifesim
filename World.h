@@ -16,6 +16,7 @@ private:
 	sf::Shader shader;
 	//TODO delete temp
 	int temp;
+	long long unsigned int id;
 
 	bool PointExist(int x, int y);
 	void AddCircle(int x, int y, int r, sf::Color color);
@@ -23,7 +24,6 @@ private:
 public:
 	
 	std::list<Unit> units;
-
 	World();
 	void Init(sf::RenderWindow* window, Settings* settings, int width, int height);
 	sf::Color GetPoint(int x, int y);
@@ -38,6 +38,7 @@ public:
 	//void Blur();
 	bool HasUnits();
 	void Clear();
+	long long unsigned int GetNextID();
 	~World();
 	
 	

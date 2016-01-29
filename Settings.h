@@ -21,6 +21,8 @@ public:
 	int food_eat;
 	int food_fill;
 	int mutation_diff;
+	float mutation_chance;
+	float split_chance;
 	//World
 	int start_units;
 	int max_units;

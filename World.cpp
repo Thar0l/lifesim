@@ -24,6 +24,7 @@ void World::Init(sf::RenderWindow* window, Settings* settings, int width, int he
 	this->AddUnits(settings->start_units);
 	
 	this->temp = 0;
+	this->id = 0;
 }
 
 /**************************************************************************************************/
@@ -46,7 +47,7 @@ void World::Draw()
 	RenderStates.shader = &shader;
 	window->draw(sprite, RenderStates);
 	//TODO Crete blur() function
-	/* BLUR
+	/*BLUR
 	temp++;
 	if (temp % 100 == 0)
 	{
@@ -71,35 +72,11 @@ void World::AddUnits(int count)
 {
 	for (int i = 0; i < count; i++)
 	{
-		sf::Color resist = sf::Color::Black;
-		if (i % 6 == 0)
-		{
-			resist.r = 255;
-		}
-		else if (i % 6 == 1)
-		{
-			resist.g = 255;
-		}
-		else if (i % 6 == 2)
-		{
-			resist.b = 255;
-		}
-		else if (i % 6 == 3)
-		{
-			resist.r = 255;
-			resist.g = 255;
-		}
-		else if (i % 6 == 4)
-		{
-			resist.g = 255;
-			resist.b = 255;
-		}
-		else if (i % 6 == 5)
-		{
-			resist.b = 255;
-			resist.r = 255;
-		}
-		units.push_back(Unit(window, this, settings, rand() % (int)(size.x), rand() % (int)(size.y), resist));
+		HsvColor resist;
+		resist.h = rand() % 360;
+		resist.s = 255;
+		resist.v = 255;
+		units.push_back(Unit(window, this, settings, settings->size_start, rand() % (int)(size.x), rand() % (int)(size.y), HsvToRgb(resist)));
 
 	}
 }
@@ -135,6 +112,7 @@ void World::SetPoint(int x, int y, sf::Color color)
 	}
 }
 
+/**************************************************************************************************/
 
 void World::AddCircle(int x, int y, int r, sf::Color color)
 {
@@ -173,6 +151,8 @@ void World::AddCircle(int x, int y, int r, sf::Color color)
 	}
 }
 
+/**************************************************************************************************/
+
 void World::Fill(sf::Color color)
 {
     for (int i = 0; i < size.x; i++)
@@ -183,6 +163,8 @@ void World::Fill(sf::Color color)
 		}
 	}
 }
+
+/**************************************************************************************************/
 
 void World::FillCircles()
 {
@@ -236,6 +218,13 @@ bool World::HasUnits()
 void World::Clear()
 {
 	this->Fill(sf::Color::Black);
+}
+
+/**************************************************************************************************/
+
+long long unsigned int World::GetNextID()
+{
+	return id++;
 }
 
 /**************************************************************************************************/

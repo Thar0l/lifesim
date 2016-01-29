@@ -20,4 +20,5 @@ int main()
 /***********
 Predators
 Menu
+Feromones
 ************/

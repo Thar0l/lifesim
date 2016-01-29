@@ -2,6 +2,14 @@
 
 #include "Unit.h"
 
+int sign(int x)
+{
+	return (x == 0) ? 0 : (x > 0) ? 1 : -1;
+}
+
+
+/**************************************************************************************************/
+
 sf::Color inv(sf::Color color)
 {
 	sf::Color result;
@@ -136,7 +144,7 @@ int max(int a, int b)
 
 /**************************************************************************************************/
 
-Unit::Unit(sf::RenderWindow* window, World* world, Settings* settings, int x, int y, sf::Color res, int generation)
+Unit::Unit(sf::RenderWindow* window, World* world, Settings* settings, int size, int x, int y, sf::Color res, int generation)
 {
 	this->world = world; 
 	this->window = window;
@@ -144,10 +152,14 @@ Unit::Unit(sf::RenderWindow* window, World* world, Settings* settings, int x, in
 	this->food  = settings->food_start;
 	this->resist = res;
 	this->speed = settings->speed;
-	this->size = settings->size_start;
+	this->size = size;
 	this->generation = generation;
 	this->alive = true;
 	this->age = 0;
+	this->id = world->GetNextID();
+	this->aim = sf::Vector2f(x, y);
+
+	this->predator = false;
 
 	this->image.setPosition(x,y);
 	this->image.setFillColor(resist);
@@ -168,56 +180,59 @@ void Unit::Draw()
 
 void Unit::Move(direction dir)
 {
-	if (dir != stay)
+	if (predator)
 	{
-		sf::Vector2f position = image.getPosition();
-		int dx;
-		int dy;
-		direction _dir = dir;
-
-		if (_dir == null)
+		if (aim == sf::Vector2f(0, 0))
 		{
-			int i = rand() % 4;
-			switch (i)
+			if (world->HasUnits())
 			{
-			case 0:
-				_dir = left;
-				break;
-			case 1:
-				_dir = right;
-				break;
-			case 2:
-				_dir = up;
-				break;
-			case 3:
-				_dir = down;
-				break;
-			default:
-				_dir = left;
-				break;
+				std::list<Unit>::iterator unit = world->units.begin();
+				int min = window->getSize().x;
+				while (unit != world->units.end())
+				{
+					if ((unit->Alive()) && (!unit->Predator()))
+					{
+						if (unit->GetID() != this->id)
+						    if (unit->getDistance(this->image.getPosition()) < min)
+							{
+								min = unit->getDistance(this->image.getPosition());
+								victim = unit;
+								aim = victim->GetPosition();
+							}
+					}
+					unit++;
+				}
 			}
 		}
-		if (_dir == left)
+		else if (victim->getDistance(this->image.getPosition()) < size)
 		{
-			position.x -= speed;
+			food += victim->BeEaten();
+			aim = sf::Vector2f(0, 0);
 		}
-		if (_dir == right)
+		else
 		{
-			position.x += speed;
+			aim = victim->GetPosition();
+			int	dx = (rand() % 2) * speed * sign(aim.x - image.getPosition().x);
+			int	dy = (rand() % 2) * speed * sign(aim.y - image.getPosition().y);
+			image.setPosition(sf::Vector2f(image.getPosition().x + dx, image.getPosition().y + dy));
 		}
-		if (_dir == up)
+	}
+	else
+	{
+		if (getDistance(aim) < 10)
 		{
-			position.y -= speed;
+			aim = sf::Vector2f(image.getPosition().x + rand() % 101 - 50, image.getPosition().y + rand() % 101 - 50);
 		}
-		if (_dir == down)
+		else
 		{
-			position.y += speed;
+			int dx = 0;
+			int dy = 0;
+			if (rand() % 2 == 0)
+				dx = (rand() % 3) * speed * sign(aim.x - image.getPosition().x);
+			else
+				dy = (rand() % 3) * speed * sign(aim.y - image.getPosition().y);
+			image.setPosition(sf::Vector2f(image.getPosition().x + dx, image.getPosition().y + dy));
 		}
-		if (position.x < 0) position.x = 0;
-		if (position.y < 0) position.y = 0;
-		if (position.x >= world->GetSize().x) position.x = world->GetSize().x - 1;
-		if (position.y >= world->GetSize().y) position.y = world->GetSize().y - 1;
-		image.setPosition(position);
 	}
 }
 
@@ -227,12 +242,37 @@ void Unit::Split()
 {
 	if ((food > settings->food_split) && (world->GetUnitCount() < settings->max_units) && (size > 1))
 	{
-		int childs = pow(2, size - 1) - 1;
+		int childs = 1; // pow(2, size - 1) - 1;
 		for (int i = 0; i < childs; i++)
 		{
-			sf::Color childsresist;
+			sf::Color childsresist = resist;
+			if ((settings->mutation_diff > 0) && (((double)(rand()) / (double)(RAND_MAX)) <= settings->mutation_chance))
+			{
+				HsvColor hsv = RgbToHsv(resist);
+				int diff = rand() % (2 * settings->mutation_diff + 1) - settings->mutation_diff;
+				hsv.h += diff;
+				if (hsv.h < 0)
+				{
+					hsv.h += 360;
+				}
+				if (hsv.h > 360)
+				{
+					hsv.h = hsv.h % 360;
+				}
+				childsresist = HsvToRgb(hsv);
+			}
+			Unit unit = Unit(window, world, settings, settings->size_start, image.getPosition().x + rand() % (4 * size + 1) - 2 * size, image.getPosition().y + rand() % (4 * size + 1) - 2 * size, childsresist, generation + 1);
+			if (predator)
+			{
+				unit.MakePredator();
+			}
+			world->units.push_back(unit);
+		}
+		food = settings->food_start;
+		if ((settings->mutation_diff > 0) && (((double)(rand()) / (double)(RAND_MAX)) <= settings->mutation_chance))
+		{
 			HsvColor hsv = RgbToHsv(resist);
-			int diff = rand() % (2*settings->mutation_diff + 1) - settings->mutation_diff;
+			int diff = rand() % (2 * settings->mutation_diff + 1) - settings->mutation_diff;
 			hsv.h += diff;
 			if (hsv.h < 0)
 			{
@@ -242,26 +282,16 @@ void Unit::Split()
 			{
 				hsv.h = hsv.h % 360;
 			}
-			childsresist = HsvToRgb(hsv);
-			world->units.push_back(Unit(window, world, settings, image.getPosition().x + rand()%(4 * size + 1) - 2*size, image.getPosition().y + rand()%(4 * size + 1) - 2*size, childsresist, generation + 1));
+			resist = HsvToRgb(hsv);
+			image.setFillColor(resist);
+			image.setOutlineColor(inv(resist));
 		}
-		food = settings->food_start;
-		HsvColor hsv = RgbToHsv(resist);
-		int diff = rand() % 21 - 10;
-		hsv.h += diff;
-		if (hsv.h < 0)
-		{
-			hsv.h += 360;
-		}
-		if (hsv.h > 360)
-		{
-			hsv.h = hsv.h % 360;
-		}
-		resist = HsvToRgb(hsv);
-		image.setFillColor(resist);
-		image.setOutlineColor(inv(resist));
 		generation++;
 		size = 1;
+		if (predator)
+		{
+			this->MakePredator();
+		}
 	}
 }
 
@@ -269,7 +299,7 @@ void Unit::Split()
 
 void Unit::Growth()
 {
-	if ((food > (settings->food_growth) * size ) && (size < settings->max_size))
+	if (((!predator)&&((food > (settings->food_growth) * size ) && (size < settings->max_size))) || ((predator) && ((food >(settings->food_growth) * size) && (size < settings->max_size+2))))
 	{
 		size++;
 		image.setRadius(size);
@@ -277,6 +307,14 @@ void Unit::Growth()
 		image.setFillColor(resist);
 		this->image.setOutlineColor(inv(resist));
 	}
+}
+
+/**************************************************************************************************/
+
+int Unit::getDistance(sf::Vector2f target)
+{
+	sf::Vector2f position = image.getPosition();
+	return sqrt((position.x - target.x)*(position.x - target.x) + (position.y - target.y)*(position.y - target.y));
 }
 
 /**************************************************************************************************/
@@ -291,12 +329,15 @@ void Unit::Live()
 			alive = false;
 		}
 		Growth();
-		
-		int x = rand() % 1000;
-		if (x <= 1)
+		if (((double)(rand()) / (double)(RAND_MAX)) <= settings->split_chance)
+		{
 			Split();
-		Eat();
-		Fill();
+		}
+		if (!predator)
+		{
+			Eat();
+			Fill();
+		}
 		Move(null);
 	}
 }
@@ -393,6 +434,44 @@ bool Unit::Alive()
 
 /**************************************************************************************************/
 
+long long unsigned int Unit::GetID()
+{
+	return id;
+}
+
+/**************************************************************************************************/
+
+int Unit::BeEaten()
+{
+	this->alive = false;
+	return food;
+}
+
+bool Unit::Predator()
+{
+	return predator;
+}
+
+/**************************************************************************************************/
+
 Unit::~Unit()
 {
+}
+
+sf::Vector2f Unit::GetPosition()
+{
+	return image.getPosition();
+}
+
+void Unit::MakePredator()
+{
+	this->predator = true;
+	this->food += settings->food_start;
+	this->size = settings->max_size + 1;
+	this->resist = sf::Color(10, 10, 10);
+	this->image.setFillColor(resist);
+	this->image.setOutlineColor(inv(resist));
+	this->image.setRadius(size);
+	this->image.setOrigin(size, size);
+	this->aim = sf::Vector2f(0, 0);
 }

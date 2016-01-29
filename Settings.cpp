@@ -29,6 +29,8 @@ void Settings::init(std::string filename)
 	food_split = reader.GetInteger("Unit", "food_split",4000);
 	food_growth = reader.GetInteger("Unit", "food_growth", 3000);
 	mutation_diff = reader.GetInteger("Unit", "mutation_diff", 5);
+	mutation_chance = reader.GetReal("Unit", "mutation_chance", 0.01);
+	split_chance = reader.GetReal("Unit", "split_chance", 0.5);
     start_units = reader.GetInteger("World", "start_units", 100);
 	max_units = reader.GetInteger("World", "max_units", 10000);
 	start_color_r = reader.GetInteger("World", "start_color_r", 15);
@@ -53,6 +55,8 @@ void Settings::print()
 		<< "food_split : " << food_split << std::endl
 		<< "food_growth : " << food_growth << std::endl
 		<< "mutation_diff : " << mutation_diff << std::endl
+		<< "mutation_chance : " << mutation_chance << std::endl
+		<< "split_chance : " << split_chance << std::endl
 		<< "start_units : " << start_units << std::endl
 		<< "max_units : " << max_units << std::endl
 		<< "start_color_r : " << start_color_r << std::endl
